@@ -1,0 +1,16 @@
+# Entorno virtual y Python
+venv/
+__pycache__/
+*.pyc
+
+# Seguridad y Credenciales (¡Crucial!)
+credenciales-google.json
+.env
+
+# Configuración de editor
+.vscode/
+.idea/
+
+# Archivos temporales de sistema
+.DS_Store
+Thumbs.db

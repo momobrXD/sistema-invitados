@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inicio - Gestión de Asistencia</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/estilo.css') }}">
+</head>
+<body class="bg-light">
+
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4 shadow">
+        <div class="container">
+            <span class="navbar-brand mb-0 h1">CONTROL DE ASISTENCIA MCC</span>
+            <div class="ms-auto">
+                <a href="/consultas" class="btn btn-warning btn-sm fw-bold">📊 Consultas e Historial</a>
+                <a href="/logout" class="btn btn-outline-danger btn-sm ms-2">Cerrar Sesión</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            {% for message in messages %}
+              <div class="alert alert-success alert-dismissible fade show shadow-sm border-0">{{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+              </div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        <div class="row mb-4">
+            <div class="col-6"><h3>Panel Principal</h3></div>
+            <div class="col-6 text-end">
+                <button class="btn btn-primary shadow-sm" data-bs-toggle="modal" data-bs-target="#modalNuevoGlobal">👤 Nuevo Invitado</button>
+                <button class="btn btn-success ms-2 shadow-sm" data-bs-toggle="modal" data-bs-target="#modalCrearEvento">📅 Crear Evento</button>
+            </div>
+        </div>
+
+        <div class="row">
+            {% for evento in eventos %}
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 shadow-sm border-0">
+                    <div class="card-body">
+                        <span class="badge bg-info text-dark mb-2">{{ evento.Tipo_Evento }}</span>
+                        <h5 class="card-title">{{ evento.Nombre_Evento }}</h5>
+                        <p class="text-muted small mb-3">📅 {{ evento.Fecha_Evento }}</p>
+                        
+                        <a href="/tomar_lista/{{ evento.Nombre_Evento }}" class="btn btn-outline-primary w-100 mb-2">Tomar Asistencia</a>
+                        
+                        <form action="/cerrar_evento" method="POST" onsubmit="return confirm('¿Cerrar evento? Pasará al historial de consultas.');">
+                            <input type="hidden" name="nombre_evento" value="{{ evento.Nombre_Evento }}">
+                            <button type="submit" class="btn btn-link text-danger btn-sm w-100 text-decoration-none">🔒 Finalizar Evento</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="col-12 text-center py-5">
+                <p class="text-muted">No hay eventos abiertos actualmente.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalNuevoGlobal" tabindex="-1">
+        <div class="modal-dialog modal-lg"> 
+            <div class="modal-content border-0 shadow">
+                <form action="/agregar_invitado" method="POST">
+                    <div class="modal-header bg-primary text-white">
+                        <h5 class="modal-title">Nuevo Registro Maestro</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" name="evento_actual" value="">
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Nombre Completo</label>
+                                <input type="text" name="nombre" class="form-control" placeholder="EJ: JUAN PÉREZ" required style="text-transform: uppercase;">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Cédula</label>
+                                <input type="text" name="cedula" class="form-control">
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label fw-bold">Estado</label>
+                                <input type="text" name="estado" class="form-control" placeholder="Ej: Activo">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label fw-bold">Género</label>
+                                <select name="genero" class="form-select">
+                                    <option value="">Seleccione...</option>
+                                    <option value="MASCULINO">Masculino</option>
+                                    <option value="FEMENINO">Femenino</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label fw-bold">Celular</label>
+                                <input type="text" name="celular" class="form-control">
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Correo Electrónico</label>
+                                <input type="email" name="correo" class="form-control">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Fecha de Cumpleaños</label>
+                                <input type="date" name="cumple" class="form-control">
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Zona / Parroquia</label>
+                                <input type="text" name="zona" class="form-control">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Equipo Rector</label>
+                                <input type="text" name="equipo" class="form-control">
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Talento / Servicio</label>
+                            <textarea name="talento" class="form-control" rows="2"></textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Observaciones</label>
+                            <textarea name="observaciones" class="form-control" rows="2"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer bg-light">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-success px-4">Guardar en Base de Datos</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalCrearEvento" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content border-0 shadow">
+                <form action="/crear_evento" method="POST">
+                    <div class="modal-header bg-success text-white">
+                        <h5 class="modal-title">Configurar Nuevo Evento</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Nombre del Evento</label>
+                            <input type="text" name="nombre_evento" class="form-control" placeholder="Ej: Ultreya de Navidad" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Tipo de Evento</label>
+                            <select name="tipo_evento" class="form-select" required>
+                                <option value="" selected disabled>Elija el tipo...</option>
+                                <option value="RETIRO">Retiro</option>
+                                <option value="ESCUELA">Escuela</option>
+                                <option value="ULTREYA">Ultreya</option>
+                                <option value="HORA APOSTÓLICA">Hora Apostólica</option>
+                                <option value="REUNIÓN">Reunión</option>
+                                <option value="OTRO">Otro Evento...</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Fecha de Realización</label>
+                            <input type="date" name="fecha_evento" class="form-control" required>
+                        </div>
+                    </div>
+                    <div class="modal-footer bg-light">
+                        <button type="submit" class="btn btn-success w-100 shadow-sm">Publicar Evento</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

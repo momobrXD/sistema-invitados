@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>MCC - Reportes</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+</head>
+<body class="bg-light">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
+        <div class="container">
+            <a class="navbar-brand" href="/">Sistema MCC</a>
+            <div class="navbar-nav">
+                <a class="nav-link" href="/">Registro</a>
+                <a class="nav-link active" href="/reportes">Reportes</a>
+                <a class="nav-link text-danger" href="/logout">Salir</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h3 class="mb-4">Historial de Asistencias</h3>
+        <div class="card p-3 shadow-sm">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Evento</th>
+                        <th>Cédula</th>
+                        <th>Nombre</th>
+                        <th>Mes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for asis in asistencias %}
+                    <tr>
+                        <td>{{ asis.Fecha }}</td>
+                        <td><span class="badge bg-primary">{{ asis.Tipo_Evento }}</span></td>
+                        <td>{{ asis.Cedula_Invitado }}</td>
+                        <td>{{ asis.Nombre_Invitado }}</td>
+                        <td>{{ asis.Mes }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Detalle Histórico</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+</head>
+<body class="bg-light">
+    <div class="container mt-4">
+        <a href="/consultas" class="btn btn-outline-secondary mb-3">← Volver a Consultas</a>
+
+        {% if tipo == "evento" %}
+            <div class="card shadow border-dark">
+                <div class="card-header bg-dark text-white">
+                    <h4>📅 Evento: {{ nombre }}</h4>
+                </div>
+                <div class="card-body">
+                    <h5>Asistentes Registrados: {{ lista|length }}</h5>
+                    <div class="table-responsive">
+                        <table class="table table-striped mt-3">
+                            <thead>
+                                <tr>
+                                    <th>Nombre</th>
+                                    <th>Cédula</th>
+                                    <th>Fecha de Registro</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in lista %}
+                                <tr>
+                                    <td>{{ item.get('Nombre_Invitado', 'N/A') }}</td>
+                                    <td>{{ item.get('Cedula_Invitado', 'N/A') }}</td>
+                                    <td>{{ item.get('Fecha', 'N/A') }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        {% elif tipo == "persona" %}
+            <div class="card shadow mb-4 border-primary">
+                <div class="card-header bg-primary text-white">
+                    <h4>👤 Ficha: {{ persona.get('NOMBRE Y APELLIDO', 'Sin nombre') }}</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4"><strong>Cédula:</strong> {{ persona.get('CEDULA') }}</div>
+                        <div class="col-md-4"><strong>Zona:</strong> {{ persona.get('ZONA') }}</div>
+                        <div class="col-md-4"><strong>Estado:</strong> {{ persona.get('ESTADO') }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card shadow">
+                <div class="card-header bg-white">
+                    <h5>Historial de Participaciones</h5>
+                </div>
+                <div class="card-body p-0">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Evento</th>
+                                <th>Tipo de Evento</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for part in lista %}
+                            <tr>
+                                <td>{{ part.get('Fecha') }}</td>
+                                <td class="fw-bold">{{ part.get('Evento_Especifico') }}</td>
+                                <td><span class="badge bg-info text-dark">{{ part.get('Tipo_Evento') }}</span></td>
+                            </tr>
+                            {% else %}
+                            <tr><td colspan="3" class="text-center py-4 text-muted">No se encontraron registros de participación para esta persona.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</body>
+</html>
