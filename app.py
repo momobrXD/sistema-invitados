@@ -233,6 +233,85 @@ def historial_usuario(id_inv):
     ]
     return jsonify(participaciones)
 
+@app.route('/cumpleañeros')
+@login_required
+def cumpleañeros():
+    """Muestra todas las personas que tienen cumpleaños en el mes actual"""
+    personas = gsm.get_batch_data("Maestro")
+    mes_actual = datetime.now().month
+    
+    # Nombres de meses en español
+    meses_es = ['', 'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 
+                'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
+    mes_nombre = meses_es[mes_actual]
+    
+    def procesar_fecha(fecha_str):
+        if not fecha_str: return None, 99
+        # Limpieza básica
+        fecha_str = str(fecha_str).strip().lower()
+        
+        # 1. Diccionario para entender meses con letras (ej: "jul")
+        meses_texto = {
+            'ene': 1, 'enero': 1, 'feb': 2, 'febrero': 2,
+            'mar': 3, 'marzo': 3, 'abr': 4, 'abril': 4,
+            'may': 5, 'mayo': 5, 'jun': 6, 'junio': 6,
+            'jul': 7, 'julio': 7, 'ago': 8, 'agosto': 8,
+            'sep': 9, 'septiembre': 9, 'oct': 10, 'octubre': 10,
+            'nov': 11, 'noviembre': 11, 'dic': 12, 'diciembre': 12
+        }
+
+        # 2. Intentar formatos numéricos (Atrapa el 2026-02-07)
+        formatos = [
+            '%d/%m/%Y', '%d-%m-%Y', '%Y-%m-%d', '%Y/%m/%d', 
+            '%d/%m', '%d-%m', '%m/%d/%Y', '%m-%d-%Y'
+        ]
+        
+        for fmt in formatos:
+            try:
+                dt = datetime.strptime(fecha_str, fmt)
+                return dt.month, dt.day
+            except ValueError:
+                continue
+                
+        # 3. Rescate manual para formatos como "2-jul"
+        try:
+            # Reemplazamos guiones o espacios por barras para separar
+            partes = fecha_str.replace('-', '/').replace(' ', '/').split('/')
+            if len(partes) >= 2:
+                dia = int(partes[0])
+                mes_str = partes[1]
+                
+                # Si es texto (jul), buscamos en el diccionario. Si es número, convertimos.
+                if mes_str in meses_texto:
+                    mes = meses_texto[mes_str]
+                else:
+                    mes = int(mes_str)
+                    
+                return mes, dia
+        except:
+            pass 
+            
+        return None, 99
+
+    # Filtrar cumpleañeros del mes
+    cumpleañeros_mes = []
+    for p in personas:
+        # Asegúrate de que 'CUMPLE' sea el nombre exacto de la columna en tu Excel/Sheets
+        fecha_raw = p.get('CUMPLE', '')
+        mes_cumple, dia_cumple = procesar_fecha(fecha_raw)
+        
+        if mes_cumple == mes_actual:
+            p['dia_orden'] = dia_cumple
+            cumpleañeros_mes.append(p)
+    
+    # Ordenar por día del mes
+    cumpleañeros_mes.sort(key=lambda p: p.get('dia_orden', 99))
+    
+    return render_template('cumpleañeros.html', 
+                         mes_nombre=mes_nombre,
+                         mes=mes_actual,
+                         cumpleañeros=cumpleañeros_mes,
+                         total=len(cumpleañeros_mes))
 @app.route('/consultas')
 @login_required
 def consultas():
