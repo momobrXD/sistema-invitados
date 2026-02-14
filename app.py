@@ -92,6 +92,42 @@ class GSheetManager:
 
 gsm = GSheetManager()
 
+def procesar_fecha(fecha_str):
+    """Función global para convertir cualquier formato de fecha en mes y día numérico"""
+    if not fecha_str: return None, 99
+    fecha_str = str(fecha_str).strip().lower()
+    
+    meses_texto = {
+        'ene': 1, 'enero': 1, 'feb': 2, 'febrero': 2, 'mar': 3, 'marzo': 3,
+        'abr': 4, 'abril': 4, 'may': 5, 'mayo': 5, 'jun': 6, 'junio': 6,
+        'jul': 7, 'julio': 7, 'ago': 8, 'agosto': 8, 'sep': 9, 'septiembre': 9,
+        'oct': 10, 'octubre': 10, 'nov': 11, 'noviembre': 11, 'dic': 12, 'diciembre': 12
+    }
+
+    formatos = [
+        '%d/%m/%Y', '%d-%m-%Y', '%Y-%m-%d', '%Y/%m/%d', 
+        '%d/%m', '%d-%m', '%m/%d/%Y', '%m-%d-%Y'
+    ]
+    
+    for fmt in formatos:
+        try:
+            dt = datetime.strptime(fecha_str, fmt)
+            return dt.month, dt.day
+        except ValueError:
+            continue
+            
+    try:
+        partes = fecha_str.replace('-', '/').replace(' ', '/').split('/')
+        if len(partes) >= 2:
+            dia = int(partes[0])
+            mes_str = partes[1]
+            mes = meses_texto.get(mes_str, int(mes_str) if mes_str.isdigit() else None)
+            if mes: return mes, dia
+    except:
+        pass 
+        
+    return None, 99
+
 # ==========================================
 # RUTAS DE AUTENTICACIÓN
 # ==========================================
@@ -168,12 +204,27 @@ def tomar_lista(nombre_evento):
     invitados = gsm.get_batch_data("Maestro")
     log_data = gsm.get_batch_data("Eventos_Log")
     
+    mes_actual = datetime.now().month
+    meses_es = ['', 'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 
+                'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
+    
+    cumpleañeros_del_evento = []
+    for inv in invitados:
+        # Ahora sí encontrará la función porque es global
+        mes_cumple, dia_cumple = procesar_fecha(inv.get('CUMPLE', ''))
+        if mes_cumple == mes_actual:
+            inv['dia_cumple'] = dia_cumple
+            cumpleañeros_del_evento.append(inv)
+
     asistentes_ids = [str(f['ID_Invitado']) for f in log_data if f['Evento_Especifico'] == nombre_evento]
     
     return render_template('lista.html', 
                            invitados=invitados, 
                            evento=evento_info, 
-                           asistentes_ids=asistentes_ids)
+                           asistentes_ids=asistentes_ids,
+                           cumpleañeros=cumpleañeros_del_evento,
+                           mes_nombre=meses_es[mes_actual])
+
 
 @app.route('/procesar_asistencia_masiva', methods=['POST'])
 @login_required
@@ -240,78 +291,27 @@ def cumpleañeros():
     personas = gsm.get_batch_data("Maestro")
     mes_actual = datetime.now().month
     
-    # Nombres de meses en español
     meses_es = ['', 'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 
                 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
     mes_nombre = meses_es[mes_actual]
-    
-    def procesar_fecha(fecha_str):
-        if not fecha_str: return None, 99
-        # Limpieza básica
-        fecha_str = str(fecha_str).strip().lower()
-        
-        # 1. Diccionario para entender meses con letras (ej: "jul")
-        meses_texto = {
-            'ene': 1, 'enero': 1, 'feb': 2, 'febrero': 2,
-            'mar': 3, 'marzo': 3, 'abr': 4, 'abril': 4,
-            'may': 5, 'mayo': 5, 'jun': 6, 'junio': 6,
-            'jul': 7, 'julio': 7, 'ago': 8, 'agosto': 8,
-            'sep': 9, 'septiembre': 9, 'oct': 10, 'octubre': 10,
-            'nov': 11, 'noviembre': 11, 'dic': 12, 'diciembre': 12
-        }
 
-        # 2. Intentar formatos numéricos (Atrapa el 2026-02-07)
-        formatos = [
-            '%d/%m/%Y', '%d-%m-%Y', '%Y-%m-%d', '%Y/%m/%d', 
-            '%d/%m', '%d-%m', '%m/%d/%Y', '%m-%d-%Y'
-        ]
-        
-        for fmt in formatos:
-            try:
-                dt = datetime.strptime(fecha_str, fmt)
-                return dt.month, dt.day
-            except ValueError:
-                continue
-                
-        # 3. Rescate manual para formatos como "2-jul"
-        try:
-            # Reemplazamos guiones o espacios por barras para separar
-            partes = fecha_str.replace('-', '/').replace(' ', '/').split('/')
-            if len(partes) >= 2:
-                dia = int(partes[0])
-                mes_str = partes[1]
-                
-                # Si es texto (jul), buscamos en el diccionario. Si es número, convertimos.
-                if mes_str in meses_texto:
-                    mes = meses_texto[mes_str]
-                else:
-                    mes = int(mes_str)
-                    
-                return mes, dia
-        except:
-            pass 
-            
-        return None, 99
-
-    # Filtrar cumpleañeros del mes
     cumpleañeros_mes = []
     for p in personas:
-        # Asegúrate de que 'CUMPLE' sea el nombre exacto de la columna en tu Excel/Sheets
-        fecha_raw = p.get('CUMPLE', '')
-        mes_cumple, dia_cumple = procesar_fecha(fecha_raw)
+        # Usa la función global definida arriba
+        mes_cumple, dia_cumple = procesar_fecha(p.get('CUMPLE', ''))
         
         if mes_cumple == mes_actual:
             p['dia_orden'] = dia_cumple
             cumpleañeros_mes.append(p)
     
-    # Ordenar por día del mes
     cumpleañeros_mes.sort(key=lambda p: p.get('dia_orden', 99))
     
     return render_template('cumpleañeros.html', 
-                         mes_nombre=mes_nombre,
-                         mes=mes_actual,
-                         cumpleañeros=cumpleañeros_mes,
-                         total=len(cumpleañeros_mes))
+                           mes_nombre=mes_nombre,
+                           mes=mes_actual,
+                           cumpleañeros=cumpleañeros_mes,
+                           total=len(cumpleañeros_mes))
+
 @app.route('/consultas')
 @login_required
 def consultas():
@@ -325,8 +325,37 @@ def consultas():
 @retry_on_429
 def detalle_evento_cerrado(nombre_evento):
     log_data = gsm.get_batch_data("Eventos_Log")
+    # 1. Filtramos los que asistieron a este evento
     asistentes = [f for f in log_data if f['Evento_Especifico'] == nombre_evento]
-    return render_template('detalle_historial.html', nombre=nombre_evento, lista=asistentes, tipo="evento")
+    
+    # 2. Lógica para detectar cumpleañeros entre los asistentes
+    mes_actual = datetime.now().month
+    meses_es = ['', 'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 
+                'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
+    
+    # Obtenemos datos del Maestro para cruzar las fechas de cumpleaños
+    maestro = gsm.get_batch_data("Maestro")
+    # Creamos un diccionario rápido de cumpleaños por ID
+    cumples_dict = {str(p['Nro']): p.get('CUMPLE', '') for p in maestro}
+    
+    cumpleañeros_asistentes = []
+    for asis in asistentes:
+        id_inv = str(asis.get('ID_Invitado'))
+        fecha_cumple_raw = cumples_dict.get(id_inv, '')
+        
+        mes, dia = procesar_fecha(fecha_cumple_raw)
+        if mes == mes_actual:
+            # Marcamos al asistente como cumpleañero
+            asis['es_cumple'] = True
+            asis['dia_cumple'] = dia
+            cumpleañeros_asistentes.append(asis)
+
+    return render_template('detalle_historial.html', 
+                           nombre=nombre_evento, 
+                           lista=asistentes, 
+                           tipo="evento",
+                           cumpleañeros=cumpleañeros_asistentes,
+                           mes_nombre=meses_es[mes_actual])
 
 @app.route('/historial_personal/<id_inv>')
 @login_required
