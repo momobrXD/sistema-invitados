@@ -31,11 +31,24 @@
         </section>
 
         <section class="right-side">
+
+
             <div class="login-content">
                 <h2 class="welcome-text">Bienvenido</h2>
                 
                 <img src="{{ url_for('static', filename='welcome.jpg') }}" alt="Welcome" class="img-welcome">
                 
+                
+                {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    {% for message in messages %}
+                    <div class="alert-custom">
+                        <span>{{ message }}</span>
+                    </div>
+                    {% endfor %}
+                {% endif %}
+                {% endwith %}
+
                 <form method="POST" class="form-login">
                     <label class="form-label-custom">Ingresar Usuario</label>
                     <input type="text" name="username" class="form-control" placeholder="Ej: MartinSopa234" required>

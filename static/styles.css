@@ -454,3 +454,139 @@ body {
     body { padding-top: 0; }
     .glass-card { box-shadow: none; border: 1px solid #eee; }
 }
+
+/* =========================================================
+   ESTILOS RESPONSIVOS (MÓVILES Y TABLETS)
+   ========================================================= */
+
+@media (max-width: 768px) {
+    /* --- Ajustes Globales --- */
+    body {
+        padding-top: 70px; /* Reducimos espacio por navbar más pequeña */
+        height: auto;
+        overflow-x: hidden;
+    }
+
+    /* --- Navegación Móvil --- */
+    .barra {
+        height: 70px;
+        padding-left: 20px;
+        padding-right: 20px;
+    }
+
+    .barra-logo img {
+        height: 60px; /* Logo más pequeño en móvil */
+    }
+
+    .barra-menu {
+        gap: 15px; /* Menos espacio entre enlaces */
+    }
+
+    .barra-menu a {
+        font-size: 0.75rem; /* Fuente pequeña para que quepan todos */
+        letter-spacing: 0;
+    }
+
+    /* --- Login (Lado Izquierdo y Derecho) --- */
+    .main-container {
+        flex-direction: column;
+        height: auto;
+    }
+
+    .left-side {
+        width: 100%;
+        padding: 40px 20px;
+        text-align: center;
+    }
+
+    .left-side h1 {
+        font-size: 2rem;
+    }
+
+    .img-faith {
+        width: 180px; /* Imagen de fe más pequeña */
+    }
+
+    .right-side {
+        width: 100%;
+        padding: 40px 20px;
+    }
+
+    .welcome-text {
+        font-size: 1.8rem;
+    }
+
+    /* --- Panel Principal (Cards de Eventos) --- */
+    main.container-fluid {
+        padding-left: 15px !important;
+        padding-right: 15px !important;
+    }
+
+    .header-panel {
+        flex-direction: column;
+        align-items: flex-start !important;
+        gap: 20px;
+    }
+
+    .action-buttons {
+        width: 100%;
+        flex-direction: column; /* Botones uno sobre otro */
+        gap: 10px;
+    }
+
+    .action-buttons .btn-primary {
+        width: 100% !important;
+    }
+
+    /* --- Tablas Responsivas --- */
+    /* Forzamos que la tabla tenga scroll lateral si es muy ancha */
+    .table-responsive {
+        border: 0;
+        margin-bottom: 20px;
+    }
+
+    .custom-table th, .custom-table td {
+        white-space: nowrap; /* Evita que el texto se rompa en mil líneas */
+        font-size: 0.85rem;
+        padding: 12px 8px !important;
+    }
+
+    /* --- Modales --- */
+    .modal-dialog {
+        margin: 10px; /* Que no pegue a los bordes del celular */
+    }
+
+    .modal-body {
+        padding: 15px;
+    }
+
+    /* --- Consultas e Historial --- */
+    .list-item-custom {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .list-item-custom .badge-type {
+        align-self: flex-start;
+    }
+
+    /* --- Barra Flotante (Pasar Lista) --- */
+    .barra-flotante-custom {
+        position: relative; /* En móvil es mejor que no flote para ganar espacio */
+        top: 0;
+        margin-bottom: 20px;
+        padding: 15px;
+    }
+}
+
+/* Ajuste extra para pantallas muy pequeñas (iPhone SE, etc) */
+@media (max-width: 400px) {
+    .barra-menu a {
+        font-size: 0.65rem;
+    }
+    
+    .welcome-text {
+        font-size: 1.5rem;
+    }
+}
