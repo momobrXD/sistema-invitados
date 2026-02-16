@@ -5,159 +5,179 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pasar Lista - {{ evento.Nombre_Evento }}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    
-    <style>
-        .barra-flotante { position: sticky; top: 0; z-index: 1000; background: white; padding: 10px; border-bottom: 2px solid #eee; }
-        .invitado-row { transition: all 0.2s; }
-        .table-success { background-color: #d1e7dd !important; }
-    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
-<body class="bg-light">
+<body class="bg-page">
 
-<nav class="navbar navbar-dark bg-dark">
-    <div class="container">
-        <a class="btn btn-sm btn-outline-light" href="/">← Volver</a>
-        <span class="navbar-brand mb-0 h1">{{ evento.Nombre_Evento }}</span>
-        <form action="/cerrar_evento" method="POST" onsubmit="return confirm('¿Seguro que deseas cerrar este evento?');">
-            <input type="hidden" name="nombre_evento" value="{{ evento.Nombre_Evento }}">
-            <button type="submit" class="btn btn-sm btn-danger">Finalizar Evento</button>
-        </form>
-    </div>
-</nav>
-
-<div class="container mt-3">
-    <div class="card mb-3 shadow-sm">
-        <div class="card-body">
-            <input type="text" id="inputBusqueda" class="form-control form-control-lg" placeholder="🔍 Buscar por nombre o cédula...">
+    <nav class="barra">
+        <div class="barra-logo">
+            <img src="{{ url_for('static', filename='logo.jpg') }}" alt="Logo MCC">
         </div>
-    </div>
+        <div class="barra-menu">
+            <a href="/">🏠 Inicio</a>
+            <form action="/cerrar_evento" method="POST" onsubmit="return confirm('¿Finalizar evento?');" style="display:inline;">
+                <input type="hidden" name="nombre_evento" value="{{ evento.Nombre_Evento }}">
+                <button type="submit" class="btn-lock" style="font-size: 0.8rem; border: 1px solid #ffccd5; padding: 5px 10px; border-radius: 8px;">🔒 Finalizar</button>
+            </form>
+        </div>
+    </nav>
 
-    <div class="barra-flotante shadow-sm rounded mb-3 d-flex justify-content-between align-items-center">
-        <div>
-            <div class="form-check d-inline-block me-3">
-                <input type="checkbox" class="form-check-input" id="checkTodo" onclick="seleccionarTodo(this)">
-                <label class="form-check-label">Seleccionar Visibles</label>
+    <main class="container-fluid px-5 mt-4">
+        <header class="header-panel d-flex justify-content-between align-items-end mb-4">
+            <div>
+                <span class="badge-type mb-2">{{ evento.Tipo }}</span>
+                <h1 class="welcome-text mb-0">{{ evento.Nombre_Evento }}</h1>
             </div>
-            <span id="contador" class="badge bg-primary fs-6">0 seleccionados</span>
-        </div>
-        <div class="btn-group">
-    <button onclick="accionMasiva('registrar')" class="btn btn-success">✅ Presente</button>
-    <button onclick="accionMasiva('quitar')" class="btn btn-danger">❌ Quitar Registro</button>
-</div>
-    </div>
+            <div class="text-end">
+                <p class="form-label-custom mb-0">Control de Asistencia en Vivo</p>
+            </div>
+        </header>
 
-    <div class="card shadow-sm">
-        <table class="table table-hover mb-0">
-            <thead class="table-light">
-                <tr>
-                    <th style="width: 40px;"></th>
-                    <th>Invitado</th>
-                    <th>Cédula</th>
-                    <th>Estado</th>
-                </tr>
-            </thead>
-            <tbody id="tablaCuerpo">
-                {% for inv in invitados %}
-                {% set id_str = inv['Nro'] ~ '' %}
-                <tr class="invitado-row {{ 'table-success' if id_str in asistentes_ids else '' }}">
-                    <td>
-                        <input type="checkbox" class="check-invitado" value="{{ id_str }}" onchange="actualizarContador()">
-                    </td>
-                    <td>
-                        <div class="d-flex align-items-center">
-                            <div>
-                                <div class="fw-bold text-uppercase">{{ inv['NOMBRE Y APELLIDO'] }}</div>
-                                <small class="text-muted">{{ inv['ZONA'] }} | {{ inv['ESTADO'] }}</small>
-                            </div>
-                               <button type="button" class="btn btn-link btn-sm ms-2 p-0" 
-        onclick='verFicha({{ (id_str or "")|tojson }}, {{ (inv.get("NOMBRE Y APELLIDO") or "")|tojson }}, {{ (inv.ESTADO or "")|tojson }}, {{ (inv.ZONA or "")|tojson }}, {{ (inv.TALENTO or "")|tojson }})'>
-    ℹ️
-</button>
+        <div class="glass-card p-3 mb-4">
+            <input type="text" id="inputBusqueda" class="form-control" style="font-size: 1.1rem;" placeholder="🔍 Buscar por nombre o cédula...">
+        </div>
+
+        <div class="barra-flotante-custom glass-card d-flex justify-content-between align-items-center mb-4">
+            <div class="d-flex align-items-center gap-3">
+                <div class="form-check m-0">
+                    <input type="checkbox" class="form-check-input" id="checkTodo" onclick="seleccionarTodo(this)">
+                    <label class="form-label-custom p-0 m-0" for="checkTodo">Seleccionar Visibles</label>
+                </div>
+                <span id="contador" class="badge-type" style="background: #e0f2fe; color: #0369a1;">0 seleccionados</span>
+            </div>
+            <div class="d-flex gap-2">
+                <button onclick="accionMasiva('registrar')" class="btn-primary w-auto px-4" style="background-image: linear-gradient(90deg, #10b981, #059669);">✅ Presente</button>
+                <button onclick="accionMasiva('quitar')" class="btn-primary w-auto px-4" style="background-image: linear-gradient(90deg, #ef4444, #dc2626);">❌ Quitar</button>
+            </div>
+        </div>
+
+        <div class="glass-card p-0 overflow-hidden">
+            <table class="table table-hover mb-0 custom-table">
+                <thead>
+                    <tr>
+                        <th class="px-4 py-3" style="width: 50px;"></th>
+                        <th class="py-3">Invitado</th>
+                        <th class="py-3">Cédula</th>
+                        <th class="py-3 text-center">Estado</th>
+                        <th class="py-3 text-center">Ficha</th>
+                    </tr>
+                </thead>
+                <tbody id="tablaCuerpo">
+                    {% for inv in invitados %}
+                    {% set id_str = inv['Nro'] ~ '' %}
+                    <tr class="invitado-row {{ 'row-success' if id_str in asistentes_ids else '' }}">
+                        <td class="px-4">
+                            <input type="checkbox" class="check-invitado" value="{{ id_str }}" onchange="actualizarContador()">
+                        </td>
+                        <td>
+                            <div class="fw-bold text-uppercase" style="font-size: 0.9rem; color: #1e293b;">{{ inv['NOMBRE Y APELLIDO'] }}</div>
+                            <small class="text-muted" style="font-size: 0.75rem;">{{ inv['ZONA'] }} | {{ inv['ESTADO'] }}</small>
+                        </td>
+                        <td class="text-muted" style="font-size: 0.9rem;">{{ inv['CEDULA'] }}</td>
+                        <td class="text-center">
+                            {% if id_str in asistentes_ids %}
+                                <span class="badge-type" style="background: #dcfce7; color: #15803d;">REGISTRADO</span>
+                            {% else %}
+                                <span class="badge-type" style="background: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0;">AUSENTE</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            <button type="button" class="btn-info-circle" 
+                                onclick='verFicha({{ (id_str or "")|tojson }}, {{ (inv.get("NOMBRE Y APELLIDO") or "")|tojson }}, {{ (inv.ESTADO or "")|tojson }}, {{ (inv.ZONA or "")|tojson }}, {{ (inv.TALENTO or "")|tojson }})'>
+                                ℹ️
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <div class="modal fade" id="modalFicha" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content glass-card p-0">
+                <div class="modal-header border-0 px-4 pt-4">
+                    <h5 class="welcome-text" id="f_nombre" style="font-size: 1.3rem;">Nombre</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body px-4 pb-4">
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <label class="form-label-custom m-0">Estado</label>
+                            <p id="f_estado" class="fw-bold"></p>
                         </div>
-                    </td>
-                    <td>{{ inv['CEDULA'] }}</td>
-                    <td>
-                        {% if id_str in asistentes_ids %}
-                            <span class="badge bg-success">REGISTRADO</span>
-                        {% else %}
-                            <span class="badge bg-light text-dark border">AUSENTE</span>
-                        {% endif %}
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-</div>
-
-<div class="modal fade" id="modalFicha" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content shadow-lg">
-            <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title" id="f_nombre">Nombre</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <p><strong>Estado:</strong> <span id="f_estado"></span></p>
-                <p><strong>Zona:</strong> <span id="f_zona"></span></p>
-                <p><strong>Talento:</strong> <span id="f_talento"></span></p>
-                <hr>
-                <h6>Historial de Asistencia:</h6>
-                <div id="historialLista" class="small list-group">Cargando...</div>
+                        <div class="col-6">
+                            <label class="form-label-custom m-0">Zona</label>
+                            <p id="f_zona" class="fw-bold"></p>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label-custom m-0">Talento</label>
+                            <p id="f_talento" class="fw-bold"></p>
+                        </div>
+                    </div>
+                    <hr class="my-3 opacity-10">
+                    <h6 class="form-label-custom mb-3">Historial Reciente:</h6>
+                    <div id="historialLista" class="scroll-area" style="max-height: 200px;">Cargando...</div>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-function actualizarContador() {
-    let n = document.querySelectorAll('.check-invitado:checked').length;
-    document.getElementById('contador').innerText = n + " seleccionados";
-}
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // ... (Mantener la lógica de tus scripts de JS intacta, solo cambian las clases visuales si fuera necesario) ...
+        function actualizarContador() {
+            let n = document.querySelectorAll('.check-invitado:checked').length;
+            document.getElementById('contador').innerText = n + " seleccionados";
+        }
 
-function seleccionarTodo(source) {
-    document.querySelectorAll('.check-invitado').forEach(cb => {
-        if(cb.closest('tr').style.display !== 'none') cb.checked = source.checked;
-    });
-    actualizarContador();
-}
+        function seleccionarTodo(source) {
+            document.querySelectorAll('.check-invitado').forEach(cb => {
+                if(cb.closest('tr').style.display !== 'none') cb.checked = source.checked;
+            });
+            actualizarContador();
+        }
 
-document.getElementById('inputBusqueda').onkeyup = function() {
-    let f = this.value.toLowerCase();
-    document.querySelectorAll('#tablaCuerpo tr').forEach(row => {
-        row.style.display = row.innerText.toLowerCase().includes(f) ? '' : 'none';
-    });
-};
+        document.getElementById('inputBusqueda').onkeyup = function() {
+            let f = this.value.toLowerCase();
+            document.querySelectorAll('#tablaCuerpo tr').forEach(row => {
+                row.style.display = row.innerText.toLowerCase().includes(f) ? '' : 'none';
+            });
+        };
 
-function accionMasiva(tipo) {
-    let ids = Array.from(document.querySelectorAll('.check-invitado:checked')).map(cb => cb.value);
-    if(ids.length === 0) return alert("Selecciona a alguien");
-    
-    let params = new URLSearchParams();
-    ids.forEach(id => params.append('invitados_ids', id));
-    params.append('accion', tipo);
-   params.append('evento_nombre', {{ (evento.Nombre_Evento or "")|tojson }});
-    params.append('tipo_evento', {{ (evento.Tipo or "")|tojson }});
+        function accionMasiva(tipo) {
+            let ids = Array.from(document.querySelectorAll('.check-invitado:checked')).map(cb => cb.value);
+            if(ids.length === 0) return alert("Selecciona a alguien primero");
+            
+            let params = new URLSearchParams();
+            ids.forEach(id => params.append('invitados_ids', id));
+            params.append('accion', tipo);
+            params.append('evento_nombre', {{ (evento.Nombre_Evento or "")|tojson }});
+            params.append('tipo_evento', {{ (evento.Tipo or "")|tojson }});
 
-    fetch('/procesar_asistencia_masiva', { method: 'POST', body: params })
-    .then(() => location.reload());
-}
+            fetch('/procesar_asistencia_masiva', { method: 'POST', body: params })
+            .then(() => location.reload());
+        }
 
-function verFicha(id, nombre, estado, zona, talento) {
-    document.getElementById('f_nombre').innerText = nombre;
-    document.getElementById('f_estado').innerText = estado;
-    document.getElementById('f_zona').innerText = zona;
-    document.getElementById('f_talento').innerText = talento;
-    
-    const h = document.getElementById('historialLista');
-    h.innerHTML = "Cargando...";
-    new bootstrap.Modal(document.getElementById('modalFicha')).show();
+        function verFicha(id, nombre, estado, zona, talento) {
+            document.getElementById('f_nombre').innerText = nombre;
+            document.getElementById('f_estado').innerText = estado;
+            document.getElementById('f_zona').innerText = zona;
+            document.getElementById('f_talento').innerText = talento;
+            
+            const h = document.getElementById('historialLista');
+            h.innerHTML = "<small class='text-muted'>Cargando historial...</small>";
+            new bootstrap.Modal(document.getElementById('modalFicha')).show();
 
-    fetch(`/historial_usuario/${id}`).then(r => r.json()).then(data => {
-        h.innerHTML = data.length ? data.map(d => `<div class="list-group-item"><b>${d.Fecha}</b>: ${d.Evento}</div>`).join('') : "Sin registros";
-    });
-}
-</script>
+            fetch(`/historial_usuario/${id}`).then(r => r.json()).then(data => {
+                h.innerHTML = data.length ? data.map(d => `
+                    <div class="p-2 mb-2 bg-light rounded border-start border-primary border-3" style="font-size: 0.85rem;">
+                        <div class="fw-bold">${d.Evento}</div>
+                        <div class="text-muted">${d.Fecha}</div>
+                    </div>`).join('') : "Sin registros previos";
+            });
+        }
+    </script>
 </body>
 </html>

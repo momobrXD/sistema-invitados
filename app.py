@@ -132,6 +132,7 @@ def procesar_fecha(fecha_str):
 # RUTAS DE AUTENTICACIÓN
 # ==========================================
 
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':

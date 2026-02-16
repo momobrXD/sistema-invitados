@@ -1,0 +1,456 @@
+/* ===== Reset & Global ===== */
+body {
+    margin-top: 0;
+    margin-right: 0;
+    margin-bottom: 0;
+    margin-left: 0;
+    padding-top: 80px;
+    font-family: 'Segoe UI', Roboto, sans-serif;
+    background-color: #ffffff;
+    background-image: "fondo.jpg";
+    color: #1a1a1a;
+    height: 100vh;
+    overflow-x: hidden;
+}
+
+/* ===== Navegación ===== */
+.barra {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-left: 60px;
+    padding-right: 60px;
+    z-index: 1000;
+    background-color: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(15px);
+    border-bottom-width: 1px;
+    border-bottom-style: solid;
+    border-bottom-color: rgba(0, 0, 0, 0.05);
+}
+
+.barra-logo img {
+    height: 100px;
+    transition-property: transform;
+    transition-duration: 0.3s;
+}
+
+.barra-menu {
+    display: flex;
+    gap: 40px;
+}
+
+.barra-menu a {
+    text-decoration: none;
+    color: #1a1a1a;
+    font-weight: 700; /* Negrilla */
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* ===== Layout Principal ===== */
+.main-container {
+    display: flex;
+    height: calc(100vh - 80px);
+}
+
+.left-side {
+    width: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding-left: 80px;
+    padding-right: 80px;
+    color: white;
+    background-image: linear-gradient(135deg, rgba(0, 100, 255, 0.8), rgba(0, 30, 80, 0.9)), url("fondo.jpg");
+    background-size: cover;
+    background-position: center;
+}
+
+.left-side h1 {
+    font-size: 3rem;
+    font-weight: 800; /* Negrilla fuerte */
+    margin-bottom: 20px;
+    line-height: 1.1;
+}
+
+.img-faith {
+    width: 280px;
+    border-radius: 30px;
+    margin-top: 30px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+/* ===== Lado Derecho (Minimalismo Blanco) ===== */
+.right-side {
+    width: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #ffffff;
+}
+
+.login-content {
+    width: 100%;
+    max-width: 380px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-left: 20px;
+    padding-right: 20px;
+}
+
+.welcome-text {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: #000000;
+    margin-bottom: 20px;
+}
+
+.img-welcome {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-bottom: 40px;
+    border-width: 4px;
+    border-style: solid;
+    border-color: #f0f4f8;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+}
+
+.form-login {
+    width: 100%;
+}
+
+.form-label-custom {
+    display: block;
+    font-weight: 700;
+    font-size: 0.85rem;
+    margin-bottom: 8px;
+    color: #4a5568;
+    padding-left: 5px;
+}
+
+.form-control {
+    width: 100%;
+    padding-top: 14px;
+    padding-right: 20px;
+    padding-bottom: 14px;
+    padding-left: 20px;
+    margin-bottom: 25px;
+    border-radius: 12px;
+    border-width: 2px;
+    border-style: solid;
+    border-color: #edf2f7;
+    background-color: #f8fafc;
+    transition-duration: 0.3s;
+}
+
+.form-control:focus {
+    outline-style: none;
+    border-color: #007bff;
+    background-color: #ffffff;
+    box-shadow: 0 0 0 4px rgba(0, 123, 255, 0.1);
+}
+
+.btn-primary {
+    width: 100%;
+    padding-top: 15px;
+    padding-bottom: 15px;
+    border-radius: 12px;
+    border-style: none;
+    background-image: linear-gradient(90deg, #007bff, #0056b3);
+    color: white;
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+    transition-duration: 0.3s;
+    box-shadow: 0 10px 20px rgba(0, 123, 255, 0.2);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.1);
+    box-shadow: 0 15px 25px rgba(0, 123, 255, 0.3);
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 992px) {
+    .main-container { flex-direction: column; }
+    .left-side, .right-side { width: 100%; height: auto; padding-top: 60px; padding-bottom: 60px; }
+    .barra { padding-left: 20px; padding-right: 20px; }
+}
+
+
+
+
+
+
+/* ===== Extensiones para Panel Principal (index.html) ===== */
+
+.bg-page {
+    background-color: #f8fafc;
+    height: auto; /* Permitir scroll */
+}
+
+/* Glass Cards */
+.glass-card {
+    background: white;
+    padding: 30px;
+    border-radius: 20px;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
+    transition: transform 0.3s ease;
+}
+
+.glass-card:hover {
+    transform: translateY(-5px);
+}
+
+/* Badges y Etiquetas */
+.badge-type {
+    background: #e0e7ff;
+    color: #4338ca;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+/* Botones Especiales */
+.btn-success-custom {
+    background-image: linear-gradient(90deg, #28a745, #218838) !important;
+    box-shadow: 0 10px 20px rgba(40, 167, 69, 0.2) !important;
+}
+
+.btn-primary-outline {
+    border: 2px solid #007bff;
+    color: #007bff;
+    padding: 10px;
+    border-radius: 12px;
+    text-decoration: none;
+    font-weight: 700;
+    transition: 0.3s;
+}
+
+.btn-primary-outline:hover {
+    background: #007bff;
+    color: white;
+}
+
+.btn-lock {
+    background: transparent;
+    border: none;
+    color: #dc3545;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    padding: 5px;
+}
+
+/* Alertas Personalizadas */
+.alert-custom {
+    background: #ffffff;
+    border-left: 5px solid #007bff;
+    padding: 15px 25px;
+    border-radius: 12px;
+    margin-bottom: 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+}
+
+.btn-close-custom {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    line-height: 1;
+    cursor: pointer;
+    color: #ccc;
+}
+
+/* Ajuste de Navegación para enlaces especiales */
+.nav-logout { color: #dc3545 !important; }
+.nav-special { color: #6f42c1 !important; }
+
+
+
+
+
+/* ===== Extensiones para Cumpleañeros ===== */
+
+/* Borde lateral de color para destacar cumpleañeros */
+.border-start-highlight {
+    border-left: 5px solid #28a745 !important;
+}
+
+/* Enlaces dentro de tarjetas */
+.text-link {
+    color: #007bff;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.text-link:hover {
+    text-decoration: underline;
+}
+
+/* Rejilla de información interna */
+.card-info-grid {
+    display: grid;
+    gap: 5px;
+    margin-top: 15px;
+}
+
+.info-item p {
+    font-size: 0.95rem;
+    color: #334155;
+}
+
+
+
+/* ===== Extensiones para Consultas ===== */
+
+.scroll-area {
+    max-height: 450px;
+    overflow-y: auto;
+    padding-right: 10px;
+}
+
+/* Personalización del scrollbar para que sea elegante */
+.scroll-area::-webkit-scrollbar {
+    width: 6px;
+}
+.scroll-area::-webkit-scrollbar-thumb {
+    background-color: #edf2f7;
+    border-radius: 10px;
+}
+
+.list-item-custom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    margin-bottom: 10px;
+    background: #f8fafc;
+    border-radius: 12px;
+    text-decoration: none;
+    transition: 0.2s ease;
+    border: 1px solid transparent;
+}
+
+.list-item-custom:hover {
+    background: #ffffff;
+    border-color: #007bff;
+    transform: translateX(5px);
+}
+
+.item-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.item-title {
+    font-weight: 700;
+    color: #1a1a1a;
+    font-size: 0.95rem;
+}
+
+.item-meta {
+    font-size: 0.8rem;
+    color: #718096;
+}
+
+.empty-state-text {
+    text-align: center;
+    padding: 40px;
+    color: #a0aec0;
+    font-style: italic;
+}
+
+
+
+/* ===== Extensiones para Pasar Lista ===== */
+
+.barra-flotante-custom {
+    position: sticky;
+    top: 90px; /* Debajo de la navbar principal */
+    z-index: 900;
+    padding: 15px 25px;
+}
+
+.custom-table thead {
+    background-color: #f8fafc;
+}
+
+.custom-table th {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #64748b;
+    border-bottom: 2px solid #edf2f7;
+}
+
+.invitado-row {
+    transition: background 0.2s;
+}
+
+.row-success {
+    background-color: #f0fdf4 !important; /* Verde muy sutil */
+}
+
+.btn-info-circle {
+    background: #f1f5f9;
+    border: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.btn-info-circle:hover {
+    background: #e2e8f0;
+    transform: scale(1.1);
+}
+
+/* Checkbox personalizado sutil */
+.check-invitado {
+    width: 18px;
+    height: 18px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+
+
+
+/* ===== Extensiones para Reportes ===== */
+
+/* Cebreado sutil para tablas de datos densos */
+.custom-table tbody tr:nth-of-type(odd) {
+    background-color: rgba(248, 250, 252, 0.5);
+}
+
+.table-responsive {
+    border-radius: 20px;
+}
+
+/* Estilo para impresión básica */
+@media print {
+    .barra, .btn-primary-outline { display: none !important; }
+    body { padding-top: 0; }
+    .glass-card { box-shadow: none; border: 1px solid #eee; }
+}

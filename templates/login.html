@@ -2,33 +2,52 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Login - MCC</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MCC de Colores - Inicio y Login</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
-<body class="bg-light d-flex align-items-center" style="height: 100vh;">
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-md-4 card p-4 shadow">
-                <h3 class="text-center mb-4">Acceso Sistema MCC</h3>
-                {% with messages = get_flashed_messages() %}
-                  {% if messages %}
-                    <div class="alert alert-danger">{{ messages[0] }}</div>
-                  {% endif %}
-                {% endwith %}
-                <form method="POST">
-                    <div class="mb-3">
-                        <label class="form-label">Usuario</label>
-                        <input type="text" name="username" class="form-control" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Contraseña</label>
-                        <input type="password" name="password" class="form-control" required>
-                    </div>
-                    <button type="submit" class="btn btn-primary w-100">Entrar</button>
+<body>
+
+    <nav class="barra">
+        <div class="barra-logo">
+            <img src="{{ url_for('static', filename='logo.jpg') }}" alt="Logo MCC">
+        </div>
+        <div class="barra-menu">
+            <a href="#">Inicio</a>
+            <a href="https://www.facebook.com/103479795820388/" target="_blank">Servicios</a>
+            <a href="#login" class="nav-login-link">Iniciar Sesión</a>
+        </div>
+    </nav>
+
+    <main class="main-container">
+        <section class="left-side">
+            <h1>Un encuentro con Cristo que transforma la vida</h1>
+            <p>
+                El Movimiento de Cursillos de Cristiandad acompaña a las personas
+                en su camino de fe, fortaleciendo la amistad y el compromiso cristiano.
+            </p>
+            <img src="{{ url_for('static', filename='amigo.jpg') }}" alt="Amistad cristiana" class="img-faith">
+        </section>
+
+        <section class="right-side">
+            <div class="login-content">
+                <h2 class="welcome-text">Bienvenido</h2>
+                
+                <img src="{{ url_for('static', filename='welcome.jpg') }}" alt="Welcome" class="img-welcome">
+                
+                <form method="POST" class="form-login">
+                    <label class="form-label-custom">Ingresar Usuario</label>
+                    <input type="text" name="username" class="form-control" placeholder="Ej: MartinSopa234" required>
+                    
+                    <label class="form-label-custom">Ingresar Contraseña</label>
+                    <input type="password" name="password" class="form-control" placeholder="••••••••" required>
+                    
+                    <button type="submit" class="btn-primary">Entrar</button>
                 </form>
             </div>
-        </div>
-    </div>
+        </section>
+    </main>
+
 </body>
 </html>

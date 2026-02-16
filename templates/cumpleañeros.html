@@ -5,92 +5,87 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cumpleañeros - {{ mes_nombre }}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/estilo.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
-<body class="bg-light">
+<body class="bg-page">
 
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4 shadow">
-        <div class="container">
-            <span class="navbar-brand mb-0 h1">CUMPLEAÑEROS - {{ mes_nombre }}</span>
-            <div class="ms-auto">
-                <a href="/" class="btn btn-secondary btn-sm">🏠 Volver al Panel</a>
-                <a href="/logout" class="btn btn-outline-danger btn-sm ms-2">Cerrar Sesión</a>
-            </div>
+    <nav class="barra">
+        <div class="barra-logo">
+            <img src="{{ url_for('static', filename='logo.jpg') }}" alt="Logo MCC">
+        </div>
+        <div class="barra-menu">
+            <a href="/">🏠 Inicio</a>
+            <a href="/consultas">📊 Historial</a>
+            <a href="/logout" class="nav-logout">Cerrar Sesión</a>
         </div>
     </nav>
 
-    <div class="container">
-        <div class="row mb-4">
-            <div class="col-12">
-                <div class="alert alert-info shadow-sm border-0">
-                    <h4 class="mb-2">🎂 Cumpleañeros de {{ mes_nombre }}</h4>
-                    <p class="mb-0">Total de personas con cumpleaños este mes: <strong>{{ total }}</strong></p>
-                </div>
+    <main class="container-fluid px-5 mt-4">
+        <header class="header-panel d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h1 class="welcome-text mb-0">🎂 Cumpleañeros de {{ mes_nombre }}</h1>
+                <p class="form-label-custom">Total este mes: <strong>{{ total }}</strong> personas</p>
             </div>
-        </div>
+            <div>
+                <a href="/" class="btn-primary-outline text-decoration-none">Volver al Panel</a>
+            </div>
+        </header>
 
         {% if cumpleañeros %}
-            <div class="row">
+            <div class="row g-4">
                 {% for persona in cumpleañeros %}
-                <div class="col-md-6 col-lg-4 mb-4">
-                    <div class="card h-100 shadow-sm border-0 border-start border-success border-4">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-start mb-3">
-                                <div>
-                                    <h5 class="card-title mb-0">{{ persona.get('NOMBRE Y APELLIDO', 'N/A') }}</h5>
-                                    <small class="text-muted">ID: {{ persona.get('Nro', 'N/A') }}</small>
+                <div class="col-md-6 col-lg-4">
+                    <div class="glass-card h-100 border-start-highlight">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div>
+                                <h5 class="welcome-text" style="font-size: 1.2rem; margin-bottom: 2px;">
+                                    {{ persona.get('NOMBRE Y APELLIDO', 'N/A') }}
+                                </h5>
+                                <span class="badge-type" style="font-size: 0.65rem;">ID: {{ persona.get('Nro', 'N/A') }}</span>
+                            </div>
+                            <span style="font-size: 1.5rem;">🎉</span>
+                        </div>
+
+                        <div class="card-info-grid">
+                            {% if persona.get('CUMPLE') %}
+                                <div class="info-item">
+                                    <span class="form-label-custom m-0">📅 Fecha</span>
+                                    <p class="mb-2 fw-bold text-primary">{{ persona.get('CUMPLE') }}</p>
                                 </div>
-                                <span class="badge bg-success">🎉</span>
-                            </div>
+                            {% endif %}
 
-                            <div class="card-text">
-                                {% if persona.get('CUMPLE') %}
-                                    <p class="mb-2">
-                                        <strong>📅 Fecha:</strong> {{ persona.get('CUMPLE') }}
-                                    </p>
-                                {% endif %}
+                            {% if persona.get('CEDULA') %}
+                                <div class="info-item">
+                                    <span class="form-label-custom m-0">🆔 Cédula</span>
+                                    <p class="mb-2">{{ persona.get('CEDULA') }}</p>
+                                </div>
+                            {% endif %}
 
-                                {% if persona.get('CEDULA') %}
-                                    <p class="mb-2">
-                                        <strong>🆔 Cédula:</strong> {{ persona.get('CEDULA') }}
-                                    </p>
-                                {% endif %}
+                            {% if persona.get('CORREO') %}
+                                <div class="info-item">
+                                    <span class="form-label-custom m-0">📧 Correo</span>
+                                    <p class="mb-2"><a href="mailto:{{ persona.get('CORREO') }}" class="text-link">{{ persona.get('CORREO') }}</a></p>
+                                </div>
+                            {% endif %}
 
-                                {% if persona.get('CORREO') %}
-                                    <p class="mb-2">
-                                        <strong>📧 Correo:</strong> <a href="mailto:{{ persona.get('CORREO') }}" class="text-decoration-none">{{ persona.get('CORREO') }}</a>
-                                    </p>
-                                {% endif %}
-
-                                {% if persona.get('CELULAR') %}
-                                    <p class="mb-2">
-                                        <strong>📱 Celular:</strong> {{ persona.get('CELULAR') }}
-                                    </p>
-                                {% endif %}
-
-                                {% if persona.get('ESTADO') %}
-                                    <p class="mb-0">
-                                        <strong>Estado:</strong> 
-                                        <span class="badge bg-info text-dark">{{ persona.get('ESTADO') }}</span>
-                                    </p>
-                                {% endif %}
-                            </div>
+                            {% if persona.get('CELULAR') %}
+                                <div class="info-item">
+                                    <span class="form-label-custom m-0">📱 Celular</span>
+                                    <p class="mb-2">{{ persona.get('CELULAR') }}</p>
+                                </div>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
                 {% endfor %}
             </div>
         {% else %}
-            <div class="row">
-                <div class="col-12">
-                    <div class="alert alert-warning text-center shadow-sm border-0">
-                        <h5>No hay cumpleañeros en {{ mes_nombre }} 😔</h5>
-                        <p class="mb-0">Vuelve el próximo mes para ver más celebraciones</p>
-                    </div>
-                </div>
+            <div class="glass-card text-center py-5">
+                <p class="welcome-text" style="font-size: 1.5rem;">No hay cumpleañeros en {{ mes_nombre }} 😔</p>
+                <p class="form-label-custom">Vuelve el próximo mes para ver más celebraciones</p>
             </div>
         {% endif %}
-    </div>
+    </main>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>

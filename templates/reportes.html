@@ -2,48 +2,80 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>MCC - Reportes</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MCC - Reportes de Asistencia</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
-<body class="bg-light">
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
-        <div class="container">
-            <a class="navbar-brand" href="/">Sistema MCC</a>
-            <div class="navbar-nav">
-                <a class="nav-link" href="/">Registro</a>
-                <a class="nav-link active" href="/reportes">Reportes</a>
-                <a class="nav-link text-danger" href="/logout">Salir</a>
-            </div>
+<body class="bg-page">
+
+    <nav class="barra">
+        <div class="barra-logo">
+            <img src="{{ url_for('static', filename='logo.jpg') }}" alt="Logo MCC">
+        </div>
+        <div class="barra-menu">
+            <a href="/">🏠 Inicio</a>
+            <a href="/consultas">📊 Historial</a>
+            <a href="/logout" class="nav-logout">Cerrar Sesión</a>
         </div>
     </nav>
 
-    <div class="container">
-        <h3 class="mb-4">Historial de Asistencias</h3>
-        <div class="card p-3 shadow-sm">
-            <table class="table table-striped">
-                <thead>
-                    <tr>
-                        <th>Fecha</th>
-                        <th>Evento</th>
-                        <th>Cédula</th>
-                        <th>Nombre</th>
-                        <th>Mes</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for asis in asistencias %}
-                    <tr>
-                        <td>{{ asis.Fecha }}</td>
-                        <td><span class="badge bg-primary">{{ asis.Tipo_Evento }}</span></td>
-                        <td>{{ asis.Cedula_Invitado }}</td>
-                        <td>{{ asis.Nombre_Invitado }}</td>
-                        <td>{{ asis.Mes }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+    <main class="container-fluid px-5 mt-4">
+        <header class="header-panel d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h1 class="welcome-text mb-0">Historial General de Asistencias</h1>
+                <p class="form-label-custom">Reporte detallado de participación por evento y fecha</p>
+            </div>
+            <button onclick="window.print()" class="btn-primary-outline" style="font-size: 0.8rem;">
+                🖨️ Imprimir Reporte
+            </button>
+        </header>
+
+        <div class="glass-card p-0 overflow-hidden">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0 custom-table">
+                    <thead>
+                        <tr>
+                            <th class="px-4 py-3">Fecha</th>
+                            <th class="py-3">Evento</th>
+                            <th class="py-3">Cédula</th>
+                            <th class="py-3">Nombre del Invitado</th>
+                            <th class="py-3 text-center">Mes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for asis in asistencias %}
+                        <tr>
+                            <td class="px-4 fw-bold" style="color: #007bff; font-size: 0.85rem;">
+                                {{ asis.Fecha }}
+                            </td>
+                            <td>
+                                <span class="badge-type" style="background: #eff6ff; color: #1e40af; border: 1px solid #dbeafe;">
+                                    {{ asis.Tipo_Evento }}
+                                </span>
+                            </td>
+                            <td class="text-muted">{{ asis.Cedula_Invitado }}</td>
+                            <td class="text-uppercase fw-semibold" style="font-size: 0.85rem; color: #334155;">
+                                {{ asis.Nombre_Invitado }}
+                            </td>
+                            <td class="text-center">
+                                <span class="badge-type" style="background: #f8fafc; color: #64748b;">
+                                    {{ asis.Mes }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="5" class="text-center py-5 text-muted italic">
+                                No se encontraron registros de asistencia.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
-    </div>
+    </main>
+
 </body>
 </html>
