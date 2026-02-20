@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MCC de Colores - Inicio y Login</title>
+    <title>MCC — Iniciar Sesión</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
@@ -15,8 +15,7 @@
         </div>
         <div class="barra-menu">
             <a href="#">Inicio</a>
-            <a href="https://www.facebook.com/103479795820388/" target="_blank">Servicios</a>
-            <a href="#login" class="nav-login-link">Iniciar Sesión</a>
+            <a href="https://www.facebook.com/103479795820388/" target="_blank">Facebook</a>
         </div>
     </nav>
 
@@ -25,42 +24,43 @@
             <h1>Un encuentro con Cristo que transforma la vida</h1>
             <p>
                 El Movimiento de Cursillos de Cristiandad acompaña a las personas
-                en su camino de fe, fortaleciendo la amistad y el compromiso cristiano.
+                en su camino de fe, fortaleciendo la amistad y el compromiso cristiano
+                en comunidad.
             </p>
             <img src="{{ url_for('static', filename='amigo.jpg') }}" alt="Amistad cristiana" class="img-faith">
         </section>
 
         <section class="right-side">
-
-
             <div class="login-content">
+                <img src="{{ url_for('static', filename='welcome.jpg') }}" alt="Bienvenida" class="img-welcome">
                 <h2 class="welcome-text">Bienvenido</h2>
-                
-                <img src="{{ url_for('static', filename='welcome.jpg') }}" alt="Welcome" class="img-welcome">
-                
-                
+                <p style="color:rgba(255,255,255,.5); font-size:0.85rem; margin-top:4px;">Sistema de Gestión MCC</p>
+
                 {% with messages = get_flashed_messages() %}
                 {% if messages %}
                     {% for message in messages %}
-                    <div class="alert-custom">
-                        <span>{{ message }}</span>
+                    <div class="alert-custom mt-3">
+                        <span>⚠️ {{ message }}</span>
                     </div>
                     {% endfor %}
                 {% endif %}
                 {% endwith %}
 
                 <form method="POST" class="form-login">
-                    <label class="form-label-custom">Ingresar Usuario</label>
-                    <input type="text" name="username" class="form-control" placeholder="Ej: MartinSopa234" required>
-                    
-                    <label class="form-label-custom">Ingresar Contraseña</label>
-                    <input type="password" name="password" class="form-control" placeholder="••••••••" required>
-                    
-                    <button type="submit" class="btn-primary">Entrar</button>
+                    <div>
+                        <label class="form-label-custom">Usuario</label>
+                        <input type="text" name="username" class="form-control" placeholder="Ej: admin" required autocomplete="username">
+                    </div>
+                    <div>
+                        <label class="form-label-custom">Contraseña</label>
+                        <input type="password" name="password" class="form-control" placeholder="••••••••" required autocomplete="current-password">
+                    </div>
+                    <button type="submit" class="btn-primary">Ingresar al Sistema</button>
                 </form>
             </div>
         </section>
     </main>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

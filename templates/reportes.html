@@ -3,12 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MCC - Reportes de Asistencia</title>
+    <title>Reportes | MCC</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        @media print {
+            .barra, .no-print { display: none !important; }
+            body { background: white !important; }
+            .glass-card { box-shadow: none !important; border: 1px solid #ddd !important; }
+        }
+        .filter-bar {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .filter-bar input, .filter-bar select {
+            flex: 1;
+            min-width: 160px;
+        }
+        .tipo-pill {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            background: #eff6ff;
+            color: #1e40af;
+            border: 1px solid #dbeafe;
+        }
+    </style>
 </head>
 <body class="bg-page">
-
     <nav class="barra">
         <div class="barra-logo">
             <img src="{{ url_for('static', filename='logo.jpg') }}" alt="Logo MCC">
@@ -16,58 +44,70 @@
         <div class="barra-menu">
             <a href="/">🏠 Inicio</a>
             <a href="/consultas">📊 Historial</a>
-            <a href="/logout" class="nav-logout">Cerrar Sesión</a>
+            <button onclick="window.print()" class="btn-primary-outline" style="font-size:0.82rem; padding:6px 14px; border-radius:8px; border:none; cursor:pointer;">
+                🖨️ Imprimir
+            </button>
+            <a href="/logout" class="nav-logout">⎋ Salir</a>
         </div>
     </nav>
 
     <main class="container-fluid px-5 mt-4">
         <header class="header-panel d-flex justify-content-between align-items-center mb-4">
             <div>
-                <h1 class="welcome-text mb-0">Historial General de Asistencias</h1>
-                <p class="form-label-custom">Reporte detallado de participación por evento y fecha</p>
+                <h1 class="welcome-text mb-1">Reporte de Asistencias</h1>
+                <p class="form-label-custom mb-0">{{ asistencias|length }} registros totales</p>
             </div>
-            <button onclick="window.print()" class="btn-primary-outline" style="font-size: 0.8rem;">
-                🖨️ Imprimir Reporte
-            </button>
         </header>
+
+        <!-- Filtro rápido -->
+        <div class="glass-card mb-4 no-print">
+            <div class="filter-bar">
+                <input type="text" id="filtroTexto" class="form-control" placeholder="🔍 Filtrar por nombre, evento o cédula...">
+                <select id="filtroMes" class="form-select" style="max-width:180px;">
+                    <option value="">Todos los meses</option>
+                    {% set meses_vistos = [] %}
+                    {% for a in asistencias %}
+                        {% if a.Mes and a.Mes not in meses_vistos %}
+                            {% set _ = meses_vistos.append(a.Mes) %}
+                            <option value="{{ a.Mes }}">{{ a.Mes }}</option>
+                        {% endif %}
+                    {% endfor %}
+                </select>
+            </div>
+            <p id="filtroCount" style="font-size:0.78rem; color:#64748b; margin-top:8px; margin-bottom:0;"></p>
+        </div>
 
         <div class="glass-card p-0 overflow-hidden">
             <div class="table-responsive">
-                <table class="table table-hover mb-0 custom-table">
+                <table class="table mb-0 custom-table">
                     <thead>
                         <tr>
-                            <th class="px-4 py-3">Fecha</th>
-                            <th class="py-3">Evento</th>
-                            <th class="py-3">Cédula</th>
-                            <th class="py-3">Nombre del Invitado</th>
-                            <th class="py-3 text-center">Mes</th>
+                            <th class="px-4">Fecha</th>
+                            <th>Evento</th>
+                            <th>Tipo</th>
+                            <th>Cédula</th>
+                            <th>Nombre</th>
+                            <th class="text-center">Mes</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="tablaBody">
                         {% for asis in asistencias %}
-                        <tr>
-                            <td class="px-4 fw-bold" style="color: #007bff; font-size: 0.85rem;">
+                        <tr class="fila-reporte">
+                            <td class="px-4" style="color:#2e6faf; font-weight:600; font-size:0.85rem; white-space:nowrap;">
                                 {{ asis.Fecha }}
                             </td>
-                            <td>
-                                <span class="badge-type" style="background: #eff6ff; color: #1e40af; border: 1px solid #dbeafe;">
-                                    {{ asis.Tipo_Evento }}
-                                </span>
-                            </td>
-                            <td class="text-muted">{{ asis.Cedula_Invitado }}</td>
-                            <td class="text-uppercase fw-semibold" style="font-size: 0.85rem; color: #334155;">
-                                {{ asis.Nombre_Invitado }}
-                            </td>
+                            <td style="font-size:0.88rem; font-weight:500; color:#1e293b;">{{ asis.Evento_Especifico }}</td>
+                            <td><span class="tipo-pill">{{ asis.Tipo_Evento }}</span></td>
+                            <td style="color:#64748b; font-size:0.85rem;">{{ asis.Cedula_Invitado }}</td>
+                            <td class="text-uppercase fw-semibold" style="font-size:0.85rem;">{{ asis.Nombre_Invitado }}</td>
                             <td class="text-center">
-                                <span class="badge-type" style="background: #f8fafc; color: #64748b;">
-                                    {{ asis.Mes }}
-                                </span>
+                                <span class="badge-type">{{ asis.Mes }}</span>
                             </td>
                         </tr>
                         {% else %}
                         <tr>
-                            <td colspan="5" class="text-center py-5 text-muted italic">
-                                No se encontraron registros de asistencia.
+                            <td colspan="6" class="text-center py-5" style="color:#94a3b8; font-style:italic;">
+                                No hay registros de asistencia aún.
                             </td>
                         </tr>
                         {% endfor %}
@@ -76,6 +116,29 @@
             </div>
         </div>
     </main>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const filtroTexto = document.getElementById('filtroTexto');
+        const filtroMes   = document.getElementById('filtroMes');
+        const filas       = document.querySelectorAll('.fila-reporte');
+        const filtroCount = document.getElementById('filtroCount');
+
+        function aplicarFiltros() {
+            const txt = filtroTexto.value.toLowerCase();
+            const mes = filtroMes.value.toLowerCase();
+            let visible = 0;
+            filas.forEach(row => {
+                const textoFila = row.innerText.toLowerCase();
+                const match = (!txt || textoFila.includes(txt)) && (!mes || textoFila.includes(mes));
+                row.style.display = match ? '' : 'none';
+                if (match) visible++;
+            });
+            filtroCount.textContent = (txt || mes) ? visible + ' registros mostrados' : '';
+        }
+
+        filtroTexto.addEventListener('input', aplicarFiltros);
+        filtroMes.addEventListener('change', aplicarFiltros);
+    </script>
 </body>
 </html>

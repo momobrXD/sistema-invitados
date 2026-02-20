@@ -5,29 +5,108 @@
     <title>Detalle Histórico</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-   <style>
+    <style>
         .cumple-alerta {
             background-color: #e3f2fd;
             border-left: 5px solid #0d6efd;
             border-radius: 8px;
         }
+        .profile-field {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 12px 16px;
+        }
+        .profile-field label {
+            font-size: 0.72rem;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 4px;
+            display: block;
+        }
+        .profile-field .field-val {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #1e293b;
+            word-break: break-word;
+        }
+        .profile-field .field-val.empty {
+            color: #94a3b8;
+            font-weight: 400;
+            font-style: italic;
+        }
+        .edit-input {
+            border: 2px solid #3b82f6;
+            border-radius: 8px;
+            padding: 6px 10px;
+            font-size: 0.9rem;
+            width: 100%;
+            background: white;
+        }
+        .edit-input:focus { outline: none; box-shadow: 0 0 0 3px rgba(59,130,246,0.15); }
+        .btn-edit-toggle {
+            background: linear-gradient(90deg, #3b82f6, #1d4ed8);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 9px 22px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        .btn-edit-toggle:hover { opacity: 0.88; }
+        .btn-save {
+            background: linear-gradient(90deg, #10b981, #059669);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 9px 24px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .btn-cancel-edit {
+            background: #f1f5f9;
+            color: #475569;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 9px 18px;
+            font-size: 0.85rem;
+            cursor: pointer;
+        }
+        .toast-msg {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #10b981;
+            color: white;
+            border-radius: 12px;
+            padding: 14px 24px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            z-index: 9999;
+            display: none;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+            transition: all 0.3s;
+        }
     </style>
 </head>
-<body class="bg-light">
+<body class="bg-page">
 
-            <nav class="barra">
+    <nav class="barra">
         <div class="barra-logo">
             <img src="{{ url_for('static', filename='logo.jpg') }}" alt="Logo MCC">
         </div>
         <div class="barra-menu">
-            <a href="#">Inicio</a>
-            <a href="https://www.facebook.com/103479795820388/" target="_blank">Servicios</a>
-            <a href="#login" class="nav-login-link">Iniciar Sesión</a>
+            <a href="/">🏠 Inicio</a>
+            <a href="/consultas">← Volver a Consultas</a>
+            <a href="/logout" class="nav-logout">Cerrar Sesión</a>
         </div>
     </nav>
 
-    <div class="container mt-4">
-        <a href="/consultas" class="btn btn-outline-secondary mb-3">← Volver a Consultas</a>
+    <main class="container-fluid px-5 mt-4" style="max-width: 1000px;">
 
         {% if tipo == "evento" %}
             {% if cumpleañeros %}
@@ -43,81 +122,250 @@
             </div>
             {% endif %}
 
-            <div class="card shadow border-dark">
-                <div class="card-header bg-dark text-white">
-                    <h4>📅 Evento: {{ nombre }}</h4>
+            <div class="glass-card mb-4">
+                <div class="d-flex align-items-center mb-3">
+                    <span style="font-size:1.4rem; margin-right:10px;">📅</span>
+                    <h2 class="welcome-text m-0" style="font-size:1.3rem;">Evento: {{ nombre }}</h2>
                 </div>
-                <div class="card-body">
-                    <h5>Asistentes Registrados: {{ lista|length }}</h5>
-                    <div class="table-responsive">
-                        <table class="table table-striped mt-3">
-                            <thead>
-                                <tr>
-                                    <th>Nombre</th>
-                                    <th>Cédula</th>
-                                    <th>Fecha de Registro</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for item in lista %}
-                                <tr>
-                                    <td class="fw-bold">
-                                        {{ item.get('Nombre_Invitado', 'N/A') }}
-                                        {# Mostramos el pastelito si en la ruta marcamos 'es_cumple' como True #}
-                                        {% if item.es_cumple %} 🎂 {% endif %}
-                                    </td>
-                                    <td>{{ item.get('Cedula_Invitado', 'N/A') }}</td>
-                                    <td>{{ item.get('Fecha', 'N/A') }}</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
+                <p class="form-label-custom">Asistentes Registrados: <strong>{{ lista|length }}</strong></p>
+                <div class="table-responsive">
+                    <table class="table table-striped mt-2 custom-table">
+                        <thead>
+                            <tr><th>Nombre</th><th>Cédula</th><th>Fecha de Registro</th></tr>
+                        </thead>
+                        <tbody>
+                            {% for item in lista %}
+                            <tr>
+                                <td class="fw-bold">
+                                    {{ item.get('Nombre_Invitado', 'N/A') }}
+                                    {% if item.es_cumple %} 🎂 {% endif %}
+                                </td>
+                                <td>{{ item.get('Cedula_Invitado', 'N/A') }}</td>
+                                <td>{{ item.get('Fecha', 'N/A') }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
                 </div>
             </div>
 
         {% elif tipo == "persona" %}
-            <div class="card shadow mb-4 border-primary">
-                <div class="card-header bg-primary text-white">
-                    <h4>👤 Ficha: {{ persona.get('NOMBRE Y APELLIDO', 'Sin nombre') }}</h4>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-4"><strong>Cédula:</strong> {{ persona.get('CEDULA') }}</div>
-                        <div class="col-md-4"><strong>Zona:</strong> {{ persona.get('ZONA') }}</div>
-                        <div class="col-md-4"><strong>Estado:</strong> {{ persona.get('ESTADO') }}</div>
+
+            <!-- FICHA COMPLETA -->
+            <div class="glass-card mb-4">
+                <div class="d-flex justify-content-between align-items-start mb-4">
+                    <div>
+                        <span class="badge-type mb-2">Ficha Personal</span>
+                        <h2 class="welcome-text mb-0" style="font-size:1.5rem;">👤 {{ persona.get('NOMBRE Y APELLIDO', 'Sin nombre') }}</h2>
+                        <p class="form-label-custom mt-1">ID del Sistema: {{ persona.get('Nro', 'N/A') }}</p>
                     </div>
+                    <button class="btn-edit-toggle" onclick="activarEdicion()" id="btnEditar">✏️ Editar Ficha</button>
                 </div>
+
+                <form id="formEditar" onsubmit="guardarCambios(event)">
+                    <div class="row g-3">
+
+                        <div class="col-md-6">
+                            <div class="profile-field">
+                                <label>Nombre Completo</label>
+                                <div class="field-val" id="disp_NOMBRE_Y_APELLIDO">{{ persona.get('NOMBRE Y APELLIDO') or '' }}</div>
+                                <input type="text" class="edit-input d-none" id="edit_NOMBRE_Y_APELLIDO" name="NOMBRE Y APELLIDO"
+                                    value="{{ persona.get('NOMBRE Y APELLIDO') or '' }}" style="text-transform:uppercase;">
+                            </div>
+                        </div>
+
+                        <div class="col-md-3">
+                            <div class="profile-field">
+                                <label>🆔 Cédula</label>
+                                <div class="field-val {{ 'empty' if not persona.get('CEDULA') }}" id="disp_CEDULA">{{ persona.get('CEDULA') or 'No registrada' }}</div>
+                                <input type="text" class="edit-input d-none" id="edit_CEDULA" name="CEDULA" value="{{ persona.get('CEDULA') or '' }}">
+                            </div>
+                        </div>
+
+                        <div class="col-md-3">
+                            <div class="profile-field">
+                                <label>Estado</label>
+                                <div class="field-val {{ 'empty' if not persona.get('ESTADO') }}" id="disp_ESTADO">{{ persona.get('ESTADO') or 'No definido' }}</div>
+                                <input type="text" class="edit-input d-none" id="edit_ESTADO" name="ESTADO" value="{{ persona.get('ESTADO') or '' }}" placeholder="Ej: Activo">
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="profile-field">
+                                <label>📧 Correo Electrónico</label>
+                                <div class="field-val {{ 'empty' if not persona.get('CORREO') }}" id="disp_CORREO">{{ persona.get('CORREO') or 'No registrado' }}</div>
+                                <input type="email" class="edit-input d-none" id="edit_CORREO" name="CORREO" value="{{ persona.get('CORREO') or '' }}">
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="profile-field">
+                                <label>📱 Celular</label>
+                                <div class="field-val {{ 'empty' if not persona.get('CELULAR') }}" id="disp_CELULAR">{{ persona.get('CELULAR') or 'No registrado' }}</div>
+                                <input type="text" class="edit-input d-none" id="edit_CELULAR" name="CELULAR" value="{{ persona.get('CELULAR') or '' }}">
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="profile-field">
+                                <label>🎂 Fecha de Cumpleaños</label>
+                                <div class="field-val {{ 'empty' if not persona.get('CUMPLE') }}" id="disp_CUMPLE">{{ persona.get('CUMPLE') or 'No registrada' }}</div>
+                                <input type="text" class="edit-input d-none" id="edit_CUMPLE" name="CUMPLE"
+                                    value="{{ persona.get('CUMPLE') or '' }}" placeholder="DD/MM/AAAA">
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="profile-field">
+                                <label>🗺️ Zona / Parroquia</label>
+                                <div class="field-val {{ 'empty' if not persona.get('ZONA') }}" id="disp_ZONA">{{ persona.get('ZONA') or 'No registrada' }}</div>
+                                <input type="text" class="edit-input d-none" id="edit_ZONA" name="ZONA" value="{{ persona.get('ZONA') or '' }}">
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="profile-field">
+                                <label>👥 Equipo Rector</label>
+                                <div class="field-val {{ 'empty' if not persona.get('EQUIPO') }}" id="disp_EQUIPO">{{ persona.get('EQUIPO') or 'No registrado' }}</div>
+                                <input type="text" class="edit-input d-none" id="edit_EQUIPO" name="EQUIPO" value="{{ persona.get('EQUIPO') or '' }}">
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="profile-field">
+                                <label>⚥ Género</label>
+                                <div class="field-val {{ 'empty' if not persona.get('GENERO') }}" id="disp_GENERO">{{ persona.get('GENERO') or 'No definido' }}</div>
+                                <select class="edit-input d-none" id="edit_GENERO" name="GENERO">
+                                    <option value="">Seleccione...</option>
+                                    <option value="MASCULINO" {{ 'selected' if persona.get('GENERO') == 'MASCULINO' }}>Masculino</option>
+                                    <option value="FEMENINO" {{ 'selected' if persona.get('GENERO') == 'FEMENINO' }}>Femenino</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="col-12">
+                            <div class="profile-field">
+                                <label>🎵 Talento / Servicio</label>
+                                <div class="field-val {{ 'empty' if not persona.get('TALENTO') }}" id="disp_TALENTO">{{ persona.get('TALENTO') or 'No registrado' }}</div>
+                                <textarea class="edit-input d-none" id="edit_TALENTO" name="TALENTO" rows="2">{{ persona.get('TALENTO') or '' }}</textarea>
+                            </div>
+                        </div>
+
+                        <div class="col-12">
+                            <div class="profile-field">
+                                <label>📋 Observaciones</label>
+                                <div class="field-val {{ 'empty' if not persona.get('OBSERVACIONES') }}" id="disp_OBSERVACIONES">{{ persona.get('OBSERVACIONES') or 'Sin observaciones' }}</div>
+                                <textarea class="edit-input d-none" id="edit_OBSERVACIONES" name="OBSERVACIONES" rows="2">{{ persona.get('OBSERVACIONES') or '' }}</textarea>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="d-flex gap-2 mt-4 d-none" id="botonesGuardar">
+                        <button type="submit" class="btn-save">💾 Guardar Cambios</button>
+                        <button type="button" class="btn-cancel-edit" onclick="cancelarEdicion()">✕ Cancelar</button>
+                    </div>
+                </form>
             </div>
 
-            <div class="card shadow">
-                <div class="card-header bg-white">
-                    <h5>Historial de Participaciones</h5>
+            <!-- HISTORIAL -->
+            <div class="glass-card">
+                <div class="d-flex align-items-center mb-3">
+                    <span style="font-size:1.4rem; margin-right:10px;">📆</span>
+                    <h2 class="welcome-text m-0" style="font-size:1.2rem;">Historial de Participaciones</h2>
                 </div>
-                <div class="card-body p-0">
-                    <table class="table table-hover mb-0">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Fecha</th>
-                                <th>Evento</th>
-                                <th>Tipo de Evento</th>
-                            </tr>
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0 custom-table">
+                        <thead>
+                            <tr><th>Fecha</th><th>Evento</th><th>Tipo de Evento</th></tr>
                         </thead>
                         <tbody>
                             {% for part in lista %}
                             <tr>
                                 <td>{{ part.get('Fecha') }}</td>
                                 <td class="fw-bold">{{ part.get('Evento_Especifico') }}</td>
-                                <td><span class="badge bg-info text-dark">{{ part.get('Tipo_Evento') }}</span></td>
+                                <td><span class="badge-type" style="background:#eff6ff;color:#1e40af;border:1px solid #dbeafe;">{{ part.get('Tipo_Evento') }}</span></td>
                             </tr>
                             {% else %}
-                            <tr><td colspan="3" class="text-center py-4 text-muted">No se encontraron registros de participación para esta persona.</td></tr>
+                            <tr><td colspan="3" class="text-center py-4 text-muted">No se encontraron registros de participación.</td></tr>
                             {% endfor %}
                         </tbody>
                     </table>
                 </div>
             </div>
         {% endif %}
-    </div>
+    </main>
+
+    <div class="toast-msg" id="toastMsg"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const PERSONA_ID = "{{ persona.get('Nro', '') if persona else '' }}";
+        const CAMPOS = [
+            'NOMBRE_Y_APELLIDO', 'CEDULA', 'ESTADO', 'CORREO', 'CELULAR',
+            'CUMPLE', 'ZONA', 'EQUIPO', 'GENERO', 'TALENTO', 'OBSERVACIONES'
+        ];
+
+        function activarEdicion() {
+            CAMPOS.forEach(c => {
+                document.getElementById('disp_' + c)?.classList.add('d-none');
+                document.getElementById('edit_' + c)?.classList.remove('d-none');
+            });
+            document.getElementById('botonesGuardar').classList.remove('d-none');
+            document.getElementById('btnEditar').classList.add('d-none');
+        }
+
+        function cancelarEdicion() {
+            CAMPOS.forEach(c => {
+                document.getElementById('disp_' + c)?.classList.remove('d-none');
+                document.getElementById('edit_' + c)?.classList.add('d-none');
+            });
+            document.getElementById('botonesGuardar').classList.add('d-none');
+            document.getElementById('btnEditar').classList.remove('d-none');
+        }
+
+        const DEFAULTS = {
+            CEDULA: 'No registrada', ESTADO: 'No definido', CORREO: 'No registrado',
+            CELULAR: 'No registrado', CUMPLE: 'No registrada', ZONA: 'No registrada',
+            EQUIPO: 'No registrado', GENERO: 'No definido', TALENTO: 'No registrado',
+            OBSERVACIONES: 'Sin observaciones'
+        };
+
+        function guardarCambios(e) {
+            e.preventDefault();
+            const form = document.getElementById('formEditar');
+            const data = new URLSearchParams(new FormData(form));
+
+            fetch('/editar_persona/' + PERSONA_ID, { method: 'POST', body: data })
+            .then(r => r.json())
+            .then(resp => {
+                if (resp.status === 'ok') {
+                    CAMPOS.forEach(cid => {
+                        const disp = document.getElementById('disp_' + cid);
+                        const edit = document.getElementById('edit_' + cid);
+                        if (!disp || !edit) return;
+                        let val = edit.value.trim();
+                        const key = cid.replace('NOMBRE_Y_APELLIDO', 'NOMBRE Y APELLIDO');
+                        if (cid === 'NOMBRE_Y_APELLIDO') val = val.toUpperCase();
+                        disp.textContent = val || DEFAULTS[cid] || '';
+                        disp.classList.toggle('empty', !val);
+                    });
+                    cancelarEdicion();
+                    mostrarToast('✅ Datos guardados correctamente');
+                } else {
+                    mostrarToast('❌ Error: ' + (resp.error || 'Intenta de nuevo'), true);
+                }
+            })
+            .catch(() => mostrarToast('❌ Error de conexión', true));
+        }
+
+        function mostrarToast(msg, error = false) {
+            const t = document.getElementById('toastMsg');
+            t.textContent = msg;
+            t.style.background = error ? '#ef4444' : '#10b981';
+            t.style.display = 'block';
+            setTimeout(() => { t.style.display = 'none'; }, 3500);
+        }
+    </script>
 </body>
 </html>

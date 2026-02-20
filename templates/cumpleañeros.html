@@ -3,12 +3,60 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cumpleañeros - {{ mes_nombre }}</title>
+    <title>Cumpleañeros — {{ mes_nombre }} | MCC</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        .cumple-card {
+            border-left: 4px solid #c9973a !important;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .cumple-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 28px rgba(201,151,58,.18) !important;
+        }
+        .dia-badge {
+            background: linear-gradient(135deg, #c9973a, #a07828);
+            color: #fff;
+            font-size: 1.4rem;
+            font-weight: 800;
+            width: 52px; height: 52px;
+            border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+            font-family: 'Lora', serif;
+        }
+        .whatsapp-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #25D366;
+            color: white !important;
+            text-decoration: none;
+            border-radius: 8px;
+            padding: 6px 14px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            transition: filter 0.2s;
+        }
+        .whatsapp-btn:hover { filter: brightness(0.9); }
+        .email-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #f1f5f9;
+            color: #1a3a5c !important;
+            text-decoration: none;
+            border-radius: 8px;
+            padding: 6px 14px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+        .email-btn:hover { background: #e2e8f0; }
+    </style>
 </head>
 <body class="bg-page">
-
     <nav class="barra">
         <div class="barra-logo">
             <img src="{{ url_for('static', filename='logo.jpg') }}" alt="Logo MCC">
@@ -16,74 +64,79 @@
         <div class="barra-menu">
             <a href="/">🏠 Inicio</a>
             <a href="/consultas">📊 Historial</a>
-            <a href="/logout" class="nav-logout">Cerrar Sesión</a>
+            <a href="/logout" class="nav-logout">⎋ Salir</a>
         </div>
     </nav>
 
     <main class="container-fluid px-5 mt-4">
         <header class="header-panel d-flex justify-content-between align-items-center mb-4">
             <div>
-                <h1 class="welcome-text mb-0">🎂 Cumpleañeros de {{ mes_nombre }}</h1>
-                <p class="form-label-custom">Total este mes: <strong>{{ total }}</strong> personas</p>
+                <h1 class="welcome-text mb-1">🎂 Cumpleañeros de {{ mes_nombre }}</h1>
+                <p class="form-label-custom mb-0">
+                    {% if total > 0 %}
+                        {{ total }} persona{{ 's celebran' if total != 1 else ' celebra' }} su cumpleaños este mes
+                    {% else %}
+                        Ningún cumpleaños registrado este mes
+                    {% endif %}
+                </p>
             </div>
-            <div>
-                <a href="/" class="btn-primary-outline text-decoration-none">Volver al Panel</a>
-            </div>
+            <a href="/" class="btn-primary-outline text-decoration-none">← Volver al Panel</a>
         </header>
 
         {% if cumpleañeros %}
-            <div class="row g-4">
-                {% for persona in cumpleañeros %}
-                <div class="col-md-6 col-lg-4">
-                    <div class="glass-card h-100 border-start-highlight">
-                        <div class="d-flex justify-content-between align-items-start mb-3">
-                            <div>
-                                <h5 class="welcome-text" style="font-size: 1.2rem; margin-bottom: 2px;">
-                                    {{ persona.get('NOMBRE Y APELLIDO', 'N/A') }}
-                                </h5>
-                                <span class="badge-type" style="font-size: 0.65rem;">ID: {{ persona.get('Nro', 'N/A') }}</span>
-                            </div>
-                            <span style="font-size: 1.5rem;">🎉</span>
-                        </div>
-
-                        <div class="card-info-grid">
-                            {% if persona.get('CUMPLE') %}
-                                <div class="info-item">
-                                    <span class="form-label-custom m-0">📅 Fecha</span>
-                                    <p class="mb-2 fw-bold text-primary">{{ persona.get('CUMPLE') }}</p>
-                                </div>
-                            {% endif %}
-
-                            {% if persona.get('CEDULA') %}
-                                <div class="info-item">
-                                    <span class="form-label-custom m-0">🆔 Cédula</span>
-                                    <p class="mb-2">{{ persona.get('CEDULA') }}</p>
-                                </div>
-                            {% endif %}
-
-                            {% if persona.get('CORREO') %}
-                                <div class="info-item">
-                                    <span class="form-label-custom m-0">📧 Correo</span>
-                                    <p class="mb-2"><a href="mailto:{{ persona.get('CORREO') }}" class="text-link">{{ persona.get('CORREO') }}</a></p>
-                                </div>
-                            {% endif %}
-
-                            {% if persona.get('CELULAR') %}
-                                <div class="info-item">
-                                    <span class="form-label-custom m-0">📱 Celular</span>
-                                    <p class="mb-2">{{ persona.get('CELULAR') }}</p>
-                                </div>
-                            {% endif %}
+        <div class="row g-4">
+            {% for persona in cumpleañeros %}
+            <div class="col-md-6 col-lg-4">
+                <div class="glass-card cumple-card h-100">
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <div class="dia-badge">{{ persona.get('dia_orden', '?') }}</div>
+                        <div>
+                            <h5 class="welcome-text mb-1" style="font-size:1.05rem; line-height:1.25;">
+                                {{ persona.get('NOMBRE Y APELLIDO', 'N/A') }}
+                            </h5>
+                            <span class="badge-type">{{ mes_nombre }}</span>
                         </div>
                     </div>
+
+                    <div class="card-info-grid mb-3">
+                        {% if persona.get('CEDULA') %}
+                        <div class="info-item">
+                            <span class="form-label-custom m-0">🆔 Cédula</span>
+                            <p class="mb-0" style="font-size:0.88rem;">{{ persona.get('CEDULA') }}</p>
+                        </div>
+                        {% endif %}
+                        {% if persona.get('ZONA') %}
+                        <div class="info-item">
+                            <span class="form-label-custom m-0">🗺️ Zona</span>
+                            <p class="mb-0" style="font-size:0.88rem;">{{ persona.get('ZONA') }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="d-flex gap-2 flex-wrap">
+                        {% if persona.get('CELULAR') %}
+                        <a href="https://wa.me/593{{ persona.get('CELULAR')|replace('0','',1) }}?text=¡Feliz%20Cumpleaños%20{{ persona.get('NOMBRE Y APELLIDO', '') }}!%20🎂%20Te%20desea%20el%20MCC." 
+                           target="_blank" class="whatsapp-btn">
+                            📱 WhatsApp
+                        </a>
+                        {% endif %}
+                        {% if persona.get('CORREO') %}
+                        <a href="mailto:{{ persona.get('CORREO') }}?subject=¡Feliz Cumpleaños!&body=Estimado/a {{ persona.get('NOMBRE Y APELLIDO', '') }}, el Movimiento MCC te desea un feliz cumpleaños 🎂"
+                           class="email-btn">
+                            📧 Email
+                        </a>
+                        {% endif %}
+                    </div>
                 </div>
-                {% endfor %}
             </div>
+            {% endfor %}
+        </div>
         {% else %}
-            <div class="glass-card text-center py-5">
-                <p class="welcome-text" style="font-size: 1.5rem;">No hay cumpleañeros en {{ mes_nombre }} 😔</p>
-                <p class="form-label-custom">Vuelve el próximo mes para ver más celebraciones</p>
-            </div>
+        <div class="glass-card text-center py-5">
+            <div style="font-size:3rem; opacity:0.25; margin-bottom:16px;">🎂</div>
+            <p class="welcome-text" style="font-size:1.2rem; color:#94a3b8;">Sin cumpleañeros en {{ mes_nombre }}</p>
+            <p style="color:#b0bec5; font-size:0.85rem;">Los cumpleaños se muestran cuando hay fechas registradas</p>
+        </div>
         {% endif %}
     </main>
 

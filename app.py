@@ -368,18 +368,107 @@ def historial_personal(id_inv):
     participaciones = [f for f in log_data if str(f['ID_Invitado']) == str(id_inv)]
     return render_template('detalle_historial.html', persona=persona, lista=participaciones, tipo="persona")
 
+@app.route('/previa_cierre/<nombre_evento>')
+@login_required
+def previa_cierre(nombre_evento):
+    """Vista previa antes de cerrar un evento: cumpleañeros y observaciones"""
+    eventos = gsm.get_batch_data("Eventos_Creados")
+    evento_info = next((e for e in eventos if e['Nombre_Evento'] == nombre_evento), None)
+
+    log_data = gsm.get_batch_data("Eventos_Log")
+    asistentes = [f for f in log_data if f.get('Evento_Especifico') == nombre_evento]
+
+    maestro = gsm.get_batch_data("Maestro")
+    # Diccionario rápido por ID
+    maestro_dict = {str(p['Nro']): p for p in maestro}
+
+    mes_actual = datetime.now().month
+    meses_es = ['', 'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+                'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
+
+    cumpleañeros_evento = []
+    for asis in asistentes:
+        id_inv = str(asis.get('ID_Invitado', ''))
+        persona = maestro_dict.get(id_inv, {})
+        mes, dia = procesar_fecha(persona.get('CUMPLE', ''))
+        if mes == mes_actual:
+            cumpleañeros_evento.append({
+                'nombre': asis.get('Nombre_Invitado', 'N/A'),
+                'dia': dia,
+                'cumple': persona.get('CUMPLE', '')
+            })
+    cumpleañeros_evento.sort(key=lambda x: x['dia'])
+
+    return render_template('previa_cierre.html',
+                           evento=evento_info,
+                           nombre_evento=nombre_evento,
+                           asistentes=asistentes,
+                           cumpleañeros=cumpleañeros_evento,
+                           mes_nombre=meses_es[mes_actual],
+                           total_asistentes=len(asistentes))
+
 @app.route('/cerrar_evento', methods=['POST'])
 @login_required
 @retry_on_429
 def cerrar_evento():
     nombre = request.form.get('nombre_evento')
+    observaciones = request.form.get('observaciones', '')
     ws = gsm.get_ws("Eventos_Creados")
     try:
         cell = ws.find(nombre)
         ws.update_cell(cell.row, 4, "Cerrado")
+        if observaciones:
+            # Guarda observaciones en columna 5
+            ws.update_cell(cell.row, 5, observaciones)
     except:
         pass
+    flash(f"Evento '{nombre}' cerrado correctamente.")
     return redirect(url_for('index'))
+
+@app.route('/get_persona/<id_inv>')
+@login_required
+def get_persona(id_inv):
+    """API para obtener datos completos de una persona para editar"""
+    maestro = gsm.get_batch_data("Maestro")
+    persona = next((p for p in maestro if str(p['Nro']) == str(id_inv)), None)
+    if not persona:
+        return jsonify({"error": "No encontrado"}), 404
+    return jsonify(persona)
+
+@app.route('/editar_persona/<id_inv>', methods=['POST'])
+@login_required
+@retry_on_429
+def editar_persona(id_inv):
+    """Edita los datos de una persona en la hoja Maestro"""
+    ws = gsm.get_ws("Maestro")
+    all_data = ws.get_all_values()
+    headers = all_data[0]
+
+    # Encontrar la fila correspondiente
+    row_idx = None
+    for i, row in enumerate(all_data[1:], start=2):
+        if str(row[0]) == str(id_inv):
+            row_idx = i
+            break
+
+    if not row_idx:
+        return jsonify({"error": "Persona no encontrada"}), 404
+
+    # Mapa de campos a columnas (basado en el orden del Maestro)
+    campos = {
+        'ESTADO': 2, 'NOMBRE Y APELLIDO': 3, 'GENERO': 4,
+        'CEDULA': 5, 'CORREO': 6, 'CELULAR': 7,
+        'CUMPLE': 8, 'ZONA': 9, 'EQUIPO': 10,
+        'TALENTO': 11, 'OBSERVACIONES': 12
+    }
+
+    for campo, col in campos.items():
+        valor = request.form.get(campo, '')
+        if campo == 'NOMBRE Y APELLIDO':
+            valor = valor.upper()
+        ws.update_cell(row_idx, col, valor)
+
+    return jsonify({"status": "ok", "mensaje": "Datos actualizados correctamente"})
 
 # ==========================================
 # RUTA DE AGREGAR INVITADO (ACTUALIZADA)

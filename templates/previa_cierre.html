@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cerrar Evento - {{ nombre_evento }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        .cumple-card {
+            background: linear-gradient(135deg, #e0f2fe, #bfdbfe);
+            border-left: 5px solid #3b82f6;
+            border-radius: 12px;
+            padding: 14px 18px;
+            margin-bottom: 10px;
+        }
+        .resumen-stat {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+        .resumen-stat .stat-num {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: #1e40af;
+            line-height: 1;
+        }
+        .resumen-stat .stat-label {
+            font-size: 0.8rem;
+            color: #64748b;
+            margin-top: 5px;
+        }
+        .obs-textarea {
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 14px;
+            font-size: 0.95rem;
+            resize: vertical;
+            transition: border-color 0.2s;
+        }
+        .obs-textarea:focus {
+            border-color: #3b82f6;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+        }
+        .btn-cerrar-final {
+            background: linear-gradient(90deg, #ef4444, #dc2626);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 14px 32px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        .btn-cerrar-final:hover { opacity: 0.88; }
+        .asistente-chip {
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 6px 12px;
+            font-size: 0.8rem;
+            color: #334155;
+            display: inline-block;
+            margin: 3px;
+        }
+        .asistente-chip.cumple {
+            background: #dbeafe;
+            border-color: #93c5fd;
+            color: #1e40af;
+        }
+    </style>
+</head>
+<body class="bg-page">
+
+    <nav class="barra">
+        <div class="barra-logo">
+            <img src="{{ url_for('static', filename='logo.jpg') }}" alt="Logo MCC">
+        </div>
+        <div class="barra-menu">
+            <a href="/tomar_lista/{{ nombre_evento }}">← Volver al Evento</a>
+            <a href="/" class="nav-logout">🏠 Inicio</a>
+        </div>
+    </nav>
+
+    <main class="container-fluid px-5 mt-4" style="max-width: 900px;">
+        <header class="header-panel mb-4">
+            <h1 class="welcome-text mb-1">🔒 Resumen Final del Evento</h1>
+            <p class="form-label-custom">Revisa los datos antes de cerrar definitivamente</p>
+        </header>
+
+        <!-- STATS -->
+        <div class="row g-3 mb-4">
+            <div class="col-4">
+                <div class="resumen-stat">
+                    <div class="stat-num">{{ total_asistentes }}</div>
+                    <div class="stat-label">Asistentes Registrados</div>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="resumen-stat">
+                    <div class="stat-num" style="color: #d97706;">{{ cumpleañeros|length }}</div>
+                    <div class="stat-label">Cumpleañeros este mes</div>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="resumen-stat">
+                    <div class="stat-num" style="color: #16a34a;">{{ evento.Tipo_Evento if evento else '—' }}</div>
+                    <div class="stat-label">Tipo de Evento</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CUMPLEAÑEROS -->
+        <div class="glass-card mb-4">
+            <div class="d-flex align-items-center mb-3">
+                <span style="font-size: 1.4rem; margin-right: 10px;">🎂</span>
+                <h2 class="welcome-text m-0" style="font-size: 1.2rem;">Cumpleañeros de {{ mes_nombre }} entre los Asistentes</h2>
+            </div>
+
+            {% if cumpleañeros %}
+                <div class="row g-2">
+                    {% for c in cumpleañeros %}
+                    <div class="col-md-6">
+                        <div class="cumple-card d-flex justify-content-between align-items-center">
+                            <div>
+                                <div class="fw-bold" style="color: #1e40af; font-size: 0.95rem;">🎉 {{ c.nombre }}</div>
+                                <small class="text-muted">Cumpleaños: {{ c.cumple }}</small>
+                            </div>
+                            <span class="badge-type" style="background: #dbeafe; color: #1e40af;">Día {{ c.dia }}</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="form-label-custom m-0">No hay cumpleañeros de {{ mes_nombre }} entre los asistentes de este evento.</p>
+            {% endif %}
+        </div>
+
+        <!-- LISTA ASISTENTES -->
+        <div class="glass-card mb-4">
+            <div class="d-flex align-items-center mb-3">
+                <span style="font-size: 1.4rem; margin-right: 10px;">✅</span>
+                <h2 class="welcome-text m-0" style="font-size: 1.2rem;">Lista de Asistentes ({{ total_asistentes }})</h2>
+            </div>
+            <div style="max-height: 220px; overflow-y: auto;">
+                {% set cumple_nombres = cumpleañeros | map(attribute='nombre') | list %}
+                {% for a in asistentes %}
+                    <span class="asistente-chip {% if a.get('Nombre_Invitado') in cumple_nombres %}cumple{% endif %}">
+                        {% if a.get('Nombre_Invitado') in cumple_nombres %}🎂 {% endif %}{{ a.get('Nombre_Invitado', 'N/A') }}
+                    </span>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- OBSERVACIONES + CIERRE -->
+        <div class="glass-card mb-5">
+            <form action="/cerrar_evento" method="POST">
+                <input type="hidden" name="nombre_evento" value="{{ nombre_evento }}">
+                
+                <div class="d-flex align-items-center mb-3">
+                    <span style="font-size: 1.4rem; margin-right: 10px;">📝</span>
+                    <h2 class="welcome-text m-0" style="font-size: 1.2rem;">Observaciones del Evento</h2>
+                </div>
+                <p class="form-label-custom mb-3">Agrega notas importantes antes de cerrar (opcional).</p>
+
+                <textarea name="observaciones" class="obs-textarea w-100 mb-4" rows="4"
+                    placeholder="Ej: Asistencia baja por lluvia. Se repartieron materiales. Próximo encuentro el..."></textarea>
+
+                <div class="d-flex justify-content-between align-items-center">
+                    <a href="/tomar_lista/{{ nombre_evento }}" class="btn-primary-outline text-decoration-none">← Volver y seguir tomando lista</a>
+                    <button type="submit" class="btn-cerrar-final" onclick="return confirm('¿Estás seguro? Esta acción cerrará el evento definitivamente.')">
+                        🔒 Confirmar Cierre del Evento
+                    </button>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

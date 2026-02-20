@@ -1,592 +1,736 @@
-/* ===== Reset & Global ===== */
-body {
-    margin-top: 0;
-    margin-right: 0;
-    margin-bottom: 0;
-    margin-left: 0;
-    padding-top: 80px;
-    font-family: 'Segoe UI', Roboto, sans-serif;
-    background-color: #ffffff;
-    background-image: "fondo.jpg";
-    color: #1a1a1a;
-    height: 100vh;
-    overflow-x: hidden;
+/* ===================================================
+   MCC - SISTEMA DE GESTIÓN
+   Paleta: Azul profundo + Dorado cálido + Blanco hueso
+   Tipografía: Lora (serif elegante) + DM Sans (legible)
+   Estética: Eclesial refinada, cálida, institucional
+   =================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,500;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600;700&display=swap');
+
+/* ── Variables ── */
+:root {
+  --azul:        #1a3a5c;
+  --azul-med:    #1e4f80;
+  --azul-claro:  #2e6faf;
+  --azul-hover:  #e8f1fa;
+  --dorado:      #c9973a;
+  --dorado-claro:#f5e6c8;
+  --dorado-dark: #a07828;
+  --rojo:        #d94040;
+  --rojo-hover:  #fff0f0;
+  --verde:       #2a7d55;
+  --verde-claro: #e8f5ee;
+  --blanco:      #ffffff;
+  --crema:       #faf8f5;
+  --gris-100:    #f4f6f9;
+  --gris-200:    #e8ecf2;
+  --gris-300:    #d0d7e3;
+  --gris-400:    #9aaabe;
+  --gris-600:    #5a6a82;
+  --gris-800:    #2c3a50;
+  --sombra-sm:   0 2px 8px rgba(26,58,92,.08);
+  --sombra-md:   0 4px 20px rgba(26,58,92,.12);
+  --sombra-lg:   0 8px 40px rgba(26,58,92,.16);
+  --radio:       14px;
+  --radio-sm:    8px;
+  --radio-xl:    20px;
+  --trans:        0.2s ease;
 }
 
-/* ===== Navegación ===== */
+/* ── Reset & Base ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--crema);
+  color: var(--gris-800);
+  min-height: 100vh;
+  font-size: 0.93rem;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Fondo de página con textura suave ── */
+.bg-page {
+  background:
+    radial-gradient(ellipse at 80% 0%, rgba(201,151,58,.07) 0%, transparent 60%),
+    radial-gradient(ellipse at 0% 100%, rgba(26,58,92,.06) 0%, transparent 50%),
+    var(--crema);
+  min-height: 100vh;
+}
+
+/* ===================================================
+   BARRA DE NAVEGACIÓN
+   =================================================== */
 .barra {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 80px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding-left: 60px;
-    padding-right: 60px;
-    z-index: 1000;
-    background-color: rgba(255, 255, 255, 0.8);
-    backdrop-filter: blur(15px);
-    border-bottom-width: 1px;
-    border-bottom-style: solid;
-    border-bottom-color: rgba(0, 0, 0, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 40px;
+  height: 66px;
+  background: var(--azul);
+  box-shadow: 0 2px 20px rgba(26,58,92,.35);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
 }
 
 .barra-logo img {
-    height: 100px;
-    transition-property: transform;
-    transition-duration: 0.3s;
+  height: 42px;
+  width: auto;
+  border-radius: 6px;
+  filter: brightness(1.05);
 }
 
 .barra-menu {
-    display: flex;
-    gap: 40px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .barra-menu a {
-    text-decoration: none;
-    color: #1a1a1a;
-    font-weight: 700; /* Negrilla */
-    font-size: 0.9rem;
-    text-transform: uppercase;
-    letter-spacing: 1px;
+  color: rgba(255,255,255,.82);
+  text-decoration: none;
+  font-size: 0.87rem;
+  font-weight: 500;
+  padding: 7px 16px;
+  border-radius: 8px;
+  transition: all var(--trans);
+  letter-spacing: 0.01em;
+}
+.barra-menu a:hover {
+  color: #fff;
+  background: rgba(255,255,255,.12);
 }
 
-/* ===== Layout Principal ===== */
-.main-container {
-    display: flex;
-    height: calc(100vh - 80px);
+.nav-special {
+  color: var(--dorado) !important;
+  background: rgba(201,151,58,.12) !important;
+  border: 1px solid rgba(201,151,58,.25) !important;
+}
+.nav-special:hover {
+  background: rgba(201,151,58,.22) !important;
 }
 
-.left-side {
-    width: 50%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding-left: 80px;
-    padding-right: 80px;
-    color: white;
-    background-image: linear-gradient(135deg, rgba(0, 100, 255, 0.8), rgba(0, 30, 80, 0.9)), url("fondo.jpg");
-    background-size: cover;
-    background-position: center;
+.nav-logout {
+  color: rgba(255,130,130,.9) !important;
+  border: 1px solid rgba(220,80,80,.25) !important;
+}
+.nav-logout:hover {
+  background: rgba(220,80,80,.18) !important;
+  color: #ffaaaa !important;
 }
 
-.left-side h1 {
-    font-size: 3rem;
-    font-weight: 800; /* Negrilla fuerte */
-    margin-bottom: 20px;
-    line-height: 1.1;
+/* ── Separador visual en nav ── */
+.barra-menu::before {
+  content: '';
+  display: block;
+  width: 1px;
+  height: 24px;
+  background: rgba(255,255,255,.15);
+  margin: 0 6px;
 }
 
-.img-faith {
-    width: 280px;
-    border-radius: 30px;
-    margin-top: 30px;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-}
-
-/* ===== Lado Derecho (Minimalismo Blanco) ===== */
-.right-side {
-    width: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: #ffffff;
-}
-
-.login-content {
-    width: 100%;
-    max-width: 380px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding-left: 20px;
-    padding-right: 20px;
+/* ===================================================
+   HEADER PANEL
+   =================================================== */
+.header-panel {
+  padding: 32px 0 8px;
 }
 
 .welcome-text {
-    font-size: 2.5rem;
-    font-weight: 800;
-    color: #000000;
-    margin-bottom: 20px;
-}
-
-.img-welcome {
-    width: 100px;
-    height: 100px;
-    border-radius: 50%;
-    object-fit: cover;
-    margin-bottom: 40px;
-    border-width: 4px;
-    border-style: solid;
-    border-color: #f0f4f8;
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
-}
-
-.form-login {
-    width: 100%;
+  font-family: 'Lora', Georgia, serif;
+  font-weight: 600;
+  color: var(--azul);
+  line-height: 1.25;
 }
 
 .form-label-custom {
-    display: block;
-    font-weight: 700;
-    font-size: 0.85rem;
-    margin-bottom: 8px;
-    color: #4a5568;
-    padding-left: 5px;
+  font-size: 0.82rem;
+  color: var(--gris-600);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
 }
 
-.form-control {
-    width: 100%;
-    padding-top: 14px;
-    padding-right: 20px;
-    padding-bottom: 14px;
-    padding-left: 20px;
-    margin-bottom: 25px;
-    border-radius: 12px;
-    border-width: 2px;
-    border-style: solid;
-    border-color: #edf2f7;
-    background-color: #f8fafc;
-    transition-duration: 0.3s;
-}
-
-.form-control:focus {
-    outline-style: none;
-    border-color: #007bff;
-    background-color: #ffffff;
-    box-shadow: 0 0 0 4px rgba(0, 123, 255, 0.1);
-}
-
-.btn-primary {
-    width: 100%;
-    padding-top: 15px;
-    padding-bottom: 15px;
-    border-radius: 12px;
-    border-style: none;
-    background-image: linear-gradient(90deg, #007bff, #0056b3);
-    color: white;
-    font-weight: 700;
-    font-size: 1rem;
-    cursor: pointer;
-    transition-duration: 0.3s;
-    box-shadow: 0 10px 20px rgba(0, 123, 255, 0.2);
-}
-
-.btn-primary:hover {
-    transform: translateY(-2px);
-    filter: brightness(1.1);
-    box-shadow: 0 15px 25px rgba(0, 123, 255, 0.3);
-}
-
-/* ===== Responsive ===== */
-@media (max-width: 992px) {
-    .main-container { flex-direction: column; }
-    .left-side, .right-side { width: 100%; height: auto; padding-top: 60px; padding-bottom: 60px; }
-    .barra { padding-left: 20px; padding-right: 20px; }
-}
-
-
-
-
-
-
-/* ===== Extensiones para Panel Principal (index.html) ===== */
-
-.bg-page {
-    background-color: #f8fafc;
-    height: auto; /* Permitir scroll */
-}
-
-/* Glass Cards */
+/* ===================================================
+   CARDS DE VIDRIO (glass-card)
+   =================================================== */
 .glass-card {
-    background: white;
-    padding: 30px;
-    border-radius: 20px;
-    border: 1px solid rgba(0, 0, 0, 0.05);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
-    transition: transform 0.3s ease;
+  background: var(--blanco);
+  border: 1px solid var(--gris-200);
+  border-radius: var(--radio-xl);
+  padding: 28px;
+  box-shadow: var(--sombra-sm);
+  transition: box-shadow var(--trans), transform var(--trans);
 }
-
 .glass-card:hover {
-    transform: translateY(-5px);
+  box-shadow: var(--sombra-md);
 }
 
-/* Badges y Etiquetas */
-.badge-type {
-    background: #e0e7ff;
-    color: #4338ca;
-    padding: 5px 12px;
-    border-radius: 20px;
-    font-size: 0.75rem;
-    font-weight: 700;
-    text-transform: uppercase;
+/* Highlight lateral izquierdo opcional */
+.border-start-highlight {
+  border-left: 4px solid var(--dorado) !important;
 }
 
-/* Botones Especiales */
+/* ── Info grid dentro de cards ── */
+.card-info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 20px; }
+.info-item p { margin-bottom: 0; font-size: 0.9rem; }
+
+/* ── Cabecera del card de evento ── */
+.card-event-header { border-bottom: 1px solid var(--gris-200); padding-bottom: 16px; }
+
+/* ===================================================
+   BOTONES
+   =================================================== */
+.btn-primary {
+  display: block;
+  width: 100%;
+  padding: 11px 20px;
+  background: linear-gradient(135deg, var(--azul-med), var(--azul-claro));
+  color: #fff !important;
+  border: none;
+  border-radius: var(--radio);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: center;
+  text-decoration: none;
+  letter-spacing: 0.02em;
+  transition: all var(--trans);
+  box-shadow: 0 3px 12px rgba(30,79,128,.25);
+}
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(30,79,128,.35);
+  filter: brightness(1.05);
+}
+.btn-primary:active { transform: translateY(0); }
+
 .btn-success-custom {
-    background-image: linear-gradient(90deg, #28a745, #218838) !important;
-    box-shadow: 0 10px 20px rgba(40, 167, 69, 0.2) !important;
+  background: linear-gradient(135deg, #2a7d55, #1a5c3d) !important;
+  box-shadow: 0 3px 12px rgba(42,125,85,.25) !important;
+}
+.btn-success-custom:hover {
+  box-shadow: 0 6px 20px rgba(42,125,85,.35) !important;
 }
 
 .btn-primary-outline {
-    border: 2px solid #007bff;
-    color: #007bff;
-    padding: 10px;
-    border-radius: 12px;
-    text-decoration: none;
-    font-weight: 700;
-    transition: 0.3s;
+  display: inline-block;
+  padding: 9px 20px;
+  background: transparent;
+  color: var(--azul-claro);
+  border: 1.5px solid var(--azul-claro);
+  border-radius: var(--radio);
+  font-size: 0.88rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all var(--trans);
 }
-
 .btn-primary-outline:hover {
-    background: #007bff;
-    color: white;
+  background: var(--azul-hover);
+  color: var(--azul);
+  border-color: var(--azul);
 }
 
 .btn-lock {
-    background: transparent;
-    border: none;
-    color: #dc3545;
-    font-weight: 600;
-    font-size: 0.9rem;
-    cursor: pointer;
-    padding: 5px;
+  display: block;
+  width: 100%;
+  padding: 10px 18px;
+  background: transparent;
+  color: var(--rojo);
+  border: 1.5px solid var(--rojo);
+  border-radius: var(--radio);
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: center;
+  text-decoration: none;
+  transition: all var(--trans);
+}
+.btn-lock:hover {
+  background: var(--rojo-hover);
+  border-color: #c23535;
+  color: #c23535;
 }
 
-/* Alertas Personalizadas */
+/* ===================================================
+   ALERTAS / FLASH
+   =================================================== */
 .alert-custom {
-    background: #ffffff;
-    border-left: 5px solid #007bff;
-    padding: 15px 25px;
-    border-radius: 12px;
-    margin-bottom: 30px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(135deg, #fff8e8, #fff3d4);
+  border: 1px solid var(--dorado-claro);
+  border-left: 4px solid var(--dorado);
+  border-radius: var(--radio);
+  padding: 14px 20px;
+  margin-bottom: 18px;
+  font-weight: 500;
+  color: var(--dorado-dark);
+  box-shadow: var(--sombra-sm);
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 .btn-close-custom {
-    background: none;
-    border: none;
-    font-size: 1.5rem;
-    line-height: 1;
-    cursor: pointer;
-    color: #ccc;
+  background: none;
+  border: none;
+  font-size: 1.1rem;
+  cursor: pointer;
+  color: var(--dorado-dark);
+  opacity: 0.7;
+  padding: 0 4px;
+}
+.btn-close-custom:hover { opacity: 1; }
+
+/* ===================================================
+   BADGES
+   =================================================== */
+.badge-type {
+  display: inline-block;
+  padding: 4px 12px;
+  background: var(--azul-hover);
+  color: var(--azul-claro);
+  border: 1px solid var(--gris-300);
+  border-radius: 20px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
-/* Ajuste de Navegación para enlaces especiales */
-.nav-logout { color: #dc3545 !important; }
-.nav-special { color: #6f42c1 !important; }
-
-
-
-
-
-/* ===== Extensiones para Cumpleañeros ===== */
-
-/* Borde lateral de color para destacar cumpleañeros */
-.border-start-highlight {
-    border-left: 5px solid #28a745 !important;
+/* ===================================================
+   FORMULARIOS
+   =================================================== */
+.form-control, .form-select {
+  border: 1.5px solid var(--gris-300);
+  border-radius: var(--radio-sm);
+  padding: 9px 14px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.9rem;
+  color: var(--gris-800);
+  background: var(--blanco);
+  transition: border-color var(--trans), box-shadow var(--trans);
 }
-
-/* Enlaces dentro de tarjetas */
-.text-link {
-    color: #007bff;
-    text-decoration: none;
-    font-weight: 600;
+.form-control:focus, .form-select:focus {
+  border-color: var(--azul-claro);
+  box-shadow: 0 0 0 3px rgba(46,111,175,.12);
+  outline: none;
 }
+.form-control::placeholder { color: var(--gris-400); }
 
-.text-link:hover {
-    text-decoration: underline;
+/* ===================================================
+   TABLA PERSONALIZADA
+   =================================================== */
+.custom-table { width: 100%; border-collapse: separate; border-spacing: 0; }
+.custom-table thead tr {
+  background: linear-gradient(135deg, #f0f4fa, #e8eef8);
 }
-
-/* Rejilla de información interna */
-.card-info-grid {
-    display: grid;
-    gap: 5px;
-    margin-top: 15px;
+.custom-table thead th {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--gris-600);
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--gris-200);
+  white-space: nowrap;
 }
-
-.info-item p {
-    font-size: 0.95rem;
-    color: #334155;
+.custom-table tbody td {
+  padding: 13px 16px;
+  border-bottom: 1px solid var(--gris-100);
+  vertical-align: middle;
+  color: var(--gris-800);
+  font-size: 0.9rem;
 }
+.custom-table tbody tr:last-child td { border-bottom: none; }
+.custom-table tbody tr:hover td { background: #f7faff; }
 
+/* Filas con asistencia registrada */
+.row-success td { background: #f0faf5 !important; }
+.row-success td:first-child { border-left: 3px solid var(--verde); }
+.row-success:hover td { background: #e5f7ed !important; }
 
-
-/* ===== Extensiones para Consultas ===== */
-
+/* ===================================================
+   LISTA DE ELEMENTOS (scroll areas)
+   =================================================== */
 .scroll-area {
-    max-height: 450px;
-    overflow-y: auto;
-    padding-right: 10px;
+  max-height: 360px;
+  overflow-y: auto;
+  padding-right: 4px;
 }
-
-/* Personalización del scrollbar para que sea elegante */
-.scroll-area::-webkit-scrollbar {
-    width: 6px;
-}
-.scroll-area::-webkit-scrollbar-thumb {
-    background-color: #edf2f7;
-    border-radius: 10px;
-}
+.scroll-area::-webkit-scrollbar { width: 5px; }
+.scroll-area::-webkit-scrollbar-track { background: var(--gris-100); border-radius: 4px; }
+.scroll-area::-webkit-scrollbar-thumb { background: var(--gris-300); border-radius: 4px; }
+.scroll-area::-webkit-scrollbar-thumb:hover { background: var(--gris-400); }
 
 .list-item-custom {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 15px;
-    margin-bottom: 10px;
-    background: #f8fafc;
-    border-radius: 12px;
-    text-decoration: none;
-    transition: 0.2s ease;
-    border: 1px solid transparent;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-radius: var(--radio-sm);
+  text-decoration: none;
+  color: var(--gris-800);
+  transition: all var(--trans);
+  border: 1px solid transparent;
+  margin-bottom: 6px;
 }
-
 .list-item-custom:hover {
-    background: #ffffff;
-    border-color: #007bff;
-    transform: translateX(5px);
+  background: var(--azul-hover);
+  border-color: var(--gris-200);
+  color: var(--azul);
+  transform: translateX(3px);
 }
 
-.item-info {
-    display: flex;
-    flex-direction: column;
-}
-
-.item-title {
-    font-weight: 700;
-    color: #1a1a1a;
-    font-size: 0.95rem;
-}
-
-.item-meta {
-    font-size: 0.8rem;
-    color: #718096;
-}
+.item-info { display: flex; flex-direction: column; gap: 2px; }
+.item-title { font-weight: 600; font-size: 0.92rem; color: var(--gris-800); }
+.item-meta  { font-size: 0.76rem; color: var(--gris-600); }
 
 .empty-state-text {
-    text-align: center;
-    padding: 40px;
-    color: #a0aec0;
-    font-style: italic;
+  text-align: center;
+  padding: 32px 20px;
+  color: var(--gris-400);
+  font-size: 0.88rem;
+  font-style: italic;
 }
 
-
-
-/* ===== Extensiones para Pasar Lista ===== */
-
+/* ===================================================
+   BARRA FLOTANTE DE LISTA
+   =================================================== */
 .barra-flotante-custom {
-    position: sticky;
-    top: 90px; /* Debajo de la navbar principal */
-    z-index: 900;
-    padding: 15px 25px;
+  padding: 14px 22px;
+  border-radius: var(--radio);
+  position: sticky;
+  top: 78px;
+  z-index: 100;
+  background: var(--blanco) !important;
+  border: 1px solid var(--gris-200) !important;
+  box-shadow: var(--sombra-md) !important;
 }
 
-.custom-table thead {
-    background-color: #f8fafc;
+/* ===================================================
+   BUSCADOR
+   =================================================== */
+.search-wrapper { position: relative; }
+.search-wrapper .form-control {
+  padding-left: 42px;
+  background: var(--gris-100);
+  border-color: var(--gris-200);
+}
+.search-wrapper::before {
+  content: '🔍';
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.85rem;
+  pointer-events: none;
+  z-index: 1;
 }
 
-.custom-table th {
-    font-size: 0.8rem;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    color: #64748b;
-    border-bottom: 2px solid #edf2f7;
-}
-
-.invitado-row {
-    transition: background 0.2s;
-}
-
-.row-success {
-    background-color: #f0fdf4 !important; /* Verde muy sutil */
-}
-
+/* ===================================================
+   INFO CIRCLE BUTTON (lista.html)
+   =================================================== */
 .btn-info-circle {
-    background: #f1f5f9;
-    border: none;
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: 0.2s;
+  background: var(--gris-100);
+  border: 1px solid var(--gris-200);
+  border-radius: 50%;
+  width: 34px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all var(--trans);
 }
-
 .btn-info-circle:hover {
-    background: #e2e8f0;
-    transform: scale(1.1);
+  background: var(--azul-hover);
+  border-color: var(--azul-claro);
+  transform: scale(1.1);
 }
 
-/* Checkbox personalizado sutil */
-.check-invitado {
-    width: 18px;
-    height: 18px;
-    border-radius: 4px;
-    cursor: pointer;
+/* ===================================================
+   TEXTOS Y LINKS
+   =================================================== */
+.text-link {
+  color: var(--azul-claro);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color var(--trans);
+}
+.text-link:hover { color: var(--azul); text-decoration: underline; }
+
+/* ===================================================
+   LOGIN PAGE
+   =================================================== */
+body:not(.bg-page) {
+  background: linear-gradient(135deg, #0f2240 0%, #1a3a5c 50%, #0a1a30 100%);
 }
 
-
-
-
-/* ===== Extensiones para Reportes ===== */
-
-/* Cebreado sutil para tablas de datos densos */
-.custom-table tbody tr:nth-of-type(odd) {
-    background-color: rgba(248, 250, 252, 0.5);
+.main-container {
+  display: grid;
+  grid-template-columns: 1fr 420px;
+  min-height: calc(100vh - 66px);
 }
 
-.table-responsive {
-    border-radius: 20px;
+.left-side {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 60px 70px;
+  color: rgba(255,255,255,.92);
+}
+.left-side h1 {
+  font-family: 'Lora', serif;
+  font-size: 2.4rem;
+  font-weight: 700;
+  line-height: 1.25;
+  margin-bottom: 22px;
+  color: #fff;
+}
+.left-side p {
+  font-size: 1.02rem;
+  color: rgba(255,255,255,.72);
+  line-height: 1.7;
+  max-width: 480px;
+}
+.img-faith {
+  margin-top: 40px;
+  width: 100%;
+  max-width: 440px;
+  border-radius: 16px;
+  opacity: 0.85;
+  box-shadow: 0 20px 60px rgba(0,0,0,.4);
 }
 
-/* Estilo para impresión básica */
+.right-side {
+  background: rgba(255,255,255,.04);
+  border-left: 1px solid rgba(255,255,255,.08);
+  backdrop-filter: blur(20px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 50px 40px;
+}
+
+.login-content {
+  width: 100%;
+  max-width: 360px;
+}
+
+.login-content .welcome-text {
+  color: #fff !important;
+  font-size: 2rem;
+  margin-bottom: 8px;
+}
+
+.img-welcome {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid rgba(201,151,58,.5);
+  margin-bottom: 24px;
+  display: block;
+}
+
+.form-login { display: flex; flex-direction: column; gap: 16px; margin-top: 20px; }
+
+.form-login .form-label-custom {
+  color: rgba(255,255,255,.6) !important;
+  margin-bottom: 6px;
+  display: block;
+}
+
+.form-login .form-control {
+  background: rgba(255,255,255,.08);
+  border-color: rgba(255,255,255,.15);
+  color: #fff;
+  padding: 12px 16px;
+  font-size: 0.95rem;
+}
+.form-login .form-control::placeholder { color: rgba(255,255,255,.3); }
+.form-login .form-control:focus {
+  background: rgba(255,255,255,.12);
+  border-color: var(--dorado);
+  box-shadow: 0 0 0 3px rgba(201,151,58,.2);
+}
+
+.form-login .btn-primary {
+  background: linear-gradient(135deg, var(--dorado), var(--dorado-dark));
+  box-shadow: 0 4px 20px rgba(201,151,58,.35);
+  padding: 13px;
+  font-size: 0.97rem;
+  margin-top: 6px;
+}
+.form-login .btn-primary:hover {
+  box-shadow: 0 8px 28px rgba(201,151,58,.45);
+}
+
+.form-login .alert-custom {
+  background: rgba(255,80,80,.12);
+  border-color: rgba(255,80,80,.3);
+  color: #ffaaaa;
+}
+
+/* ===================================================
+   MODALES
+   =================================================== */
+.modal-content.glass-card {
+  border: none !important;
+  box-shadow: var(--sombra-lg) !important;
+}
+
+.modal-backdrop.show { opacity: 0.5; backdrop-filter: blur(3px); }
+
+/* ===================================================
+   CHECKBOX PERSONALIZADO
+   =================================================== */
+.form-check-input {
+  width: 18px;
+  height: 18px;
+  border: 1.5px solid var(--gris-300);
+  border-radius: 5px;
+  cursor: pointer;
+  accent-color: var(--azul-claro);
+}
+.form-check-input:checked { border-color: var(--azul-claro); }
+
+/* ===================================================
+   PÁGINA DE CUMPLEAÑEROS
+   =================================================== */
+.cumple-card-header {
+  background: linear-gradient(135deg, var(--dorado-claro), #fdf0d5);
+  border-radius: var(--radio) var(--radio) 0 0;
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(201,151,58,.2);
+}
+
+/* ===================================================
+   ESTADO EN LISTAS
+   =================================================== */
+.estado-registrado {
+  display: inline-block;
+  padding: 4px 12px;
+  background: var(--verde-claro);
+  color: var(--verde);
+  border: 1px solid rgba(42,125,85,.2);
+  border-radius: 20px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.estado-ausente {
+  display: inline-block;
+  padding: 4px 12px;
+  background: var(--gris-100);
+  color: var(--gris-600);
+  border: 1px solid var(--gris-200);
+  border-radius: 20px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+/* ===================================================
+   ESTADÍSTICAS / COUNTERS
+   =================================================== */
+.stat-card {
+  background: var(--blanco);
+  border: 1px solid var(--gris-200);
+  border-radius: var(--radio);
+  padding: 20px 24px;
+  text-align: center;
+  box-shadow: var(--sombra-sm);
+}
+.stat-number {
+  font-family: 'Lora', serif;
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: var(--azul);
+  line-height: 1;
+}
+.stat-label {
+  font-size: 0.75rem;
+  color: var(--gris-600);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-top: 6px;
+}
+
+/* ===================================================
+   TOOLTIP LIGERO
+   =================================================== */
+[data-tooltip] { position: relative; }
+[data-tooltip]::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--gris-800);
+  color: #fff;
+  font-size: 0.75rem;
+  padding: 5px 10px;
+  border-radius: 6px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s;
+}
+[data-tooltip]:hover::after { opacity: 1; }
+
+/* ===================================================
+   ANIMACIONES DE ENTRADA
+   =================================================== */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.glass-card { animation: fadeUp 0.35s ease both; }
+.glass-card:nth-child(2) { animation-delay: 0.05s; }
+.glass-card:nth-child(3) { animation-delay: 0.10s; }
+.glass-card:nth-child(4) { animation-delay: 0.15s; }
+
+/* ===================================================
+   RESPONSIVE
+   =================================================== */
+@media (max-width: 900px) {
+  .main-container { grid-template-columns: 1fr; }
+  .left-side { display: none; }
+  .right-side { border-left: none; padding: 40px 24px; min-height: calc(100vh - 66px); }
+  .barra { padding: 0 20px; }
+  .container-fluid.px-5 { padding-left: 20px !important; padding-right: 20px !important; }
+}
+
+@media (max-width: 600px) {
+  .barra-menu a span { display: none; }
+  .header-panel { padding: 20px 0 4px; }
+  .glass-card { padding: 18px; }
+  .card-info-grid { grid-template-columns: 1fr; }
+}
+
+/* ===================================================
+   PRINT
+   =================================================== */
 @media print {
-    .barra, .btn-primary-outline { display: none !important; }
-    body { padding-top: 0; }
-    .glass-card { box-shadow: none; border: 1px solid #eee; }
-}
-
-/* =========================================================
-   ESTILOS RESPONSIVOS (MÓVILES Y TABLETS)
-   ========================================================= */
-
-@media (max-width: 768px) {
-    /* --- Ajustes Globales --- */
-    body {
-        padding-top: 70px; /* Reducimos espacio por navbar más pequeña */
-        height: auto;
-        overflow-x: hidden;
-    }
-
-    /* --- Navegación Móvil --- */
-    .barra {
-        height: 70px;
-        padding-left: 20px;
-        padding-right: 20px;
-    }
-
-    .barra-logo img {
-        height: 60px; /* Logo más pequeño en móvil */
-    }
-
-    .barra-menu {
-        gap: 15px; /* Menos espacio entre enlaces */
-    }
-
-    .barra-menu a {
-        font-size: 0.75rem; /* Fuente pequeña para que quepan todos */
-        letter-spacing: 0;
-    }
-
-    /* --- Login (Lado Izquierdo y Derecho) --- */
-    .main-container {
-        flex-direction: column;
-        height: auto;
-    }
-
-    .left-side {
-        width: 100%;
-        padding: 40px 20px;
-        text-align: center;
-    }
-
-    .left-side h1 {
-        font-size: 2rem;
-    }
-
-    .img-faith {
-        width: 180px; /* Imagen de fe más pequeña */
-    }
-
-    .right-side {
-        width: 100%;
-        padding: 40px 20px;
-    }
-
-    .welcome-text {
-        font-size: 1.8rem;
-    }
-
-    /* --- Panel Principal (Cards de Eventos) --- */
-    main.container-fluid {
-        padding-left: 15px !important;
-        padding-right: 15px !important;
-    }
-
-    .header-panel {
-        flex-direction: column;
-        align-items: flex-start !important;
-        gap: 20px;
-    }
-
-    .action-buttons {
-        width: 100%;
-        flex-direction: column; /* Botones uno sobre otro */
-        gap: 10px;
-    }
-
-    .action-buttons .btn-primary {
-        width: 100% !important;
-    }
-
-    /* --- Tablas Responsivas --- */
-    /* Forzamos que la tabla tenga scroll lateral si es muy ancha */
-    .table-responsive {
-        border: 0;
-        margin-bottom: 20px;
-    }
-
-    .custom-table th, .custom-table td {
-        white-space: nowrap; /* Evita que el texto se rompa en mil líneas */
-        font-size: 0.85rem;
-        padding: 12px 8px !important;
-    }
-
-    /* --- Modales --- */
-    .modal-dialog {
-        margin: 10px; /* Que no pegue a los bordes del celular */
-    }
-
-    .modal-body {
-        padding: 15px;
-    }
-
-    /* --- Consultas e Historial --- */
-    .list-item-custom {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 10px;
-    }
-
-    .list-item-custom .badge-type {
-        align-self: flex-start;
-    }
-
-    /* --- Barra Flotante (Pasar Lista) --- */
-    .barra-flotante-custom {
-        position: relative; /* En móvil es mejor que no flote para ganar espacio */
-        top: 0;
-        margin-bottom: 20px;
-        padding: 15px;
-    }
-}
-
-/* Ajuste extra para pantallas muy pequeñas (iPhone SE, etc) */
-@media (max-width: 400px) {
-    .barra-menu a {
-        font-size: 0.65rem;
-    }
-    
-    .welcome-text {
-        font-size: 1.5rem;
-    }
+  .barra, .barra-flotante-custom, .btn-primary,
+  .btn-primary-outline, .btn-lock { display: none !important; }
+  body { background: white; }
+  .glass-card { box-shadow: none; border: 1px solid #ddd; }
 }
