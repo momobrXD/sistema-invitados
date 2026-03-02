@@ -326,28 +326,32 @@ def consultas():
 @retry_on_429
 def detalle_evento_cerrado(nombre_evento):
     log_data = gsm.get_batch_data("Eventos_Log")
-    # 1. Filtramos los que asistieron a este evento
     asistentes = [f for f in log_data if f['Evento_Especifico'] == nombre_evento]
     
-    # 2. Lógica para detectar cumpleañeros entre los asistentes
     mes_actual = datetime.now().month
     meses_es = ['', 'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 
                 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
     
-    # Obtenemos datos del Maestro para cruzar las fechas de cumpleaños
+    # Diccionario completo del Maestro por ID para enriquecer cada asistente
     maestro = gsm.get_batch_data("Maestro")
-    # Creamos un diccionario rápido de cumpleaños por ID
-    cumples_dict = {str(p['Nro']): p.get('CUMPLE', '') for p in maestro}
+    maestro_dict = {str(p['Nro']): p for p in maestro}
     
     cumpleañeros_asistentes = []
     for asis in asistentes:
-        id_inv = str(asis.get('ID_Invitado'))
-        fecha_cumple_raw = cumples_dict.get(id_inv, '')
+        id_inv = str(asis.get('ID_Invitado', ''))
+        persona = maestro_dict.get(id_inv, {})
         
-        mes, dia = procesar_fecha(fecha_cumple_raw)
+        # Enriquecer con datos del Maestro
+        asis['Celular']       = persona.get('CELULAR', '')
+        asis['Estado']        = persona.get('ESTADO', '')
+        asis['Talento']       = persona.get('TALENTO', '')
+        asis['Observaciones'] = persona.get('OBSERVACIONES', '')
+        asis['es_cumple']     = False
+
+        # Detectar cumpleañeros
+        mes, dia = procesar_fecha(persona.get('CUMPLE', ''))
         if mes == mes_actual:
-            # Marcamos al asistente como cumpleañero
-            asis['es_cumple'] = True
+            asis['es_cumple']  = True
             asis['dia_cumple'] = dia
             cumpleañeros_asistentes.append(asis)
 

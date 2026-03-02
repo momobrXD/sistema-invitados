@@ -131,7 +131,14 @@
                 <div class="table-responsive">
                     <table class="table table-striped mt-2 custom-table">
                         <thead>
-                            <tr><th>Nombre</th><th>Cédula</th><th>Fecha de Registro</th></tr>
+                            <tr>
+                                <th>Nombre</th>
+                                <th>Cédula</th>
+                                <th>Teléfono</th>
+                                <th>Estado</th>
+                                <th>Talento</th>
+                                <th>Observaciones</th>
+                            </tr>
                         </thead>
                         <tbody>
                             {% for item in lista %}
@@ -141,7 +148,14 @@
                                     {% if item.es_cumple %} 🎂 {% endif %}
                                 </td>
                                 <td>{{ item.get('Cedula_Invitado', 'N/A') }}</td>
-                                <td>{{ item.get('Fecha', 'N/A') }}</td>
+                                <td>{{ item.get('Celular', '') or '—' }}</td>
+                                <td>
+                                    {% if item.get('Estado') %}
+                                        <span style="background:#e8f5ee; color:#2a7d55; border-radius:6px; padding:2px 8px; font-size:0.78rem; font-weight:700;">{{ item.get('Estado') }}</span>
+                                    {% else %}—{% endif %}
+                                </td>
+                                <td style="font-size:0.83rem; color:#475569;">{{ item.get('Talento', '') or '—' }}</td>
+                                <td style="font-size:0.83rem; color:#64748b; font-style:italic;">{{ item.get('Observaciones', '') or '—' }}</td>
                             </tr>
                             {% endfor %}
                         </tbody>
