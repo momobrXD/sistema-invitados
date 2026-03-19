@@ -90,7 +90,27 @@ class GSheetManager:
         # Filtra filas vacías para evitar errores
         return [dict(zip(headers, row)) for row in data[1:] if row and row[0]]
 
-gsm = GSheetManager()
+class GSMProxy:
+    """
+    Inicializa Google Sheets de forma lazy para no bloquear el arranque
+    (Render importa el módulo antes de tener todo listo).
+    """
+    def __init__(self):
+        self._gsm = None
+
+    def _get_gsm(self):
+        if self._gsm is None:
+            try:
+                self._gsm = GSheetManager()
+            except Exception as e:
+                raise RuntimeError(f"No se pudo inicializar Google Sheets: {e}")
+        return self._gsm
+
+    def __getattr__(self, item):
+        return getattr(self._get_gsm(), item)
+
+# Mantener el mismo nombre para no tocar el resto del código.
+gsm = GSMProxy()
 
 def procesar_fecha(fecha_str):
     """Función global para convertir cualquier formato de fecha en mes y día numérico"""
@@ -533,4 +553,6 @@ def agregar_invitado():
         return redirect(url_for('index'))
                 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True, use_reloader=False)
+    port = int(os.environ.get('PORT', '5000'))
+    debug = os.environ.get('FLASK_DEBUG', '0') == '1'
+    app.run(host='0.0.0.0', port=port, debug=debug, use_reloader=False)
