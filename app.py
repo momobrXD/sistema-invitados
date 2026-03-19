@@ -2,7 +2,10 @@ from flask import Flask, render_template, request, redirect, url_for, flash, jso
 import gspread
 from google.oauth2.service_account import Credentials
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
+from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
 from datetime import datetime
+from datetime import date as date_type
 import time
 import os
 import json
@@ -10,6 +13,98 @@ from functools import wraps
 
 app = Flask(__name__)
 app.secret_key = 'mcc_sistema_2026_pro_secure'
+
+# ==========================================
+# CONFIGURACIÓN DE BASE DE DATOS (POSTGRES)
+# ==========================================
+def _normalize_database_url(url: str | None) -> str | None:
+    if not url:
+        return None
+    # Render a veces entrega postgres:// y SQLAlchemy espera postgresql://
+    if url.startswith("postgres://"):
+        return "postgresql://" + url[len("postgres://") :]
+    return url
+
+
+db = SQLAlchemy()
+migrate = Migrate()
+
+db_uri = _normalize_database_url(os.environ.get("DATABASE_URL")) or "sqlite:///local.db"
+app.config["SQLALCHEMY_DATABASE_URI"] = db_uri
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+db.init_app(app)
+migrate.init_app(app, db)
+
+
+class Evento(db.Model):
+    __tablename__ = "eventos"
+
+    id = db.Column(db.Integer, primary_key=True)
+    nombre_evento = db.Column(db.String(200), unique=True, nullable=False)
+    tipo_evento = db.Column(db.String(60), nullable=False, default="OTRO")
+    fecha_evento = db.Column(db.Date, nullable=True)
+    estado = db.Column(db.String(20), nullable=False, default="Abierto")  # Abierto|Cerrado
+    observaciones = db.Column(db.Text, nullable=True)
+
+
+class Invitado(db.Model):
+    __tablename__ = "invitados"
+
+    id = db.Column(db.Integer, primary_key=True)  # este será tu "Nro"
+    estado = db.Column(db.String(60), nullable=True)
+    nombre = db.Column(db.String(200), nullable=False)
+    genero = db.Column(db.String(20), nullable=True)
+    cedula = db.Column(db.String(40), nullable=True, index=True)
+    correo = db.Column(db.String(200), nullable=True)
+    celular = db.Column(db.String(40), nullable=True)
+    cumple = db.Column(db.String(40), nullable=True)  # mantener texto por compatibilidad con tu parseador
+    zona = db.Column(db.String(120), nullable=True)
+    equipo = db.Column(db.String(120), nullable=True)
+    talento = db.Column(db.Text, nullable=True)
+    observaciones = db.Column(db.Text, nullable=True)
+
+
+class Asistencia(db.Model):
+    __tablename__ = "asistencias"
+
+    id = db.Column(db.Integer, primary_key=True)
+    evento_id = db.Column(db.Integer, db.ForeignKey("eventos.id"), nullable=False, index=True)
+    invitado_id = db.Column(db.Integer, db.ForeignKey("invitados.id"), nullable=False, index=True)
+    fecha = db.Column(db.Date, nullable=False, default=date_type.today)
+
+    __table_args__ = (
+        db.UniqueConstraint("evento_id", "invitado_id", name="uq_asistencia_evento_invitado"),
+    )
+
+
+def _evento_to_template_dict(ev: Evento) -> dict:
+    fecha_str = ev.fecha_evento.strftime("%d/%m/%Y") if ev.fecha_evento else ""
+    return {
+        "Nombre_Evento": ev.nombre_evento,
+        "Tipo": ev.tipo_evento,
+        "Tipo_Evento": ev.tipo_evento,
+        "Fecha": fecha_str,
+        "Fecha_Evento": fecha_str,
+        "Estado": ev.estado,
+        "Observaciones": ev.observaciones or "",
+    }
+
+
+def _invitado_to_template_dict(inv: Invitado) -> dict:
+    return {
+        "Nro": inv.id,
+        "ESTADO": inv.estado or "",
+        "NOMBRE Y APELLIDO": inv.nombre or "",
+        "GENERO": inv.genero or "",
+        "CEDULA": inv.cedula or "",
+        "CORREO": inv.correo or "",
+        "CELULAR": inv.celular or "",
+        "CUMPLE": inv.cumple or "",
+        "ZONA": inv.zona or "",
+        "EQUIPO": inv.equipo or "",
+        "TALENTO": inv.talento or "",
+        "OBSERVACIONES": inv.observaciones or "",
+    }
 
 # ==========================================
 # CONFIGURACIÓN DE SEGURIDAD (LOGIN)
@@ -178,12 +273,13 @@ def logout():
 @login_required
 def index():
     try:
-        # Intenta cargar configuración, si falla usa lista vacía
-        ws_config = gsm.get_ws("Config")
-        tipos = ws_config.col_values(1) if ws_config else []
-        
-        todos_eventos = gsm.get_batch_data("Eventos_Creados")
-        abiertos = [e for e in todos_eventos if e.get('Estado') != 'Cerrado']
+        tipos = []
+        eventos_abiertos = (
+            Evento.query.filter(Evento.estado != "Cerrado")
+            .order_by(Evento.id.desc())
+            .all()
+        )
+        abiertos = [_evento_to_template_dict(e) for e in eventos_abiertos]
         return render_template('index.html', tipos=tipos, eventos=abiertos)
     except Exception as e:
         return f"Error cargando el inicio: {str(e)}"
@@ -207,8 +303,22 @@ def crear_evento():
     else:
         fecha_final = datetime.now().strftime('%d/%m/%Y')
 
-    ws = gsm.get_ws("Eventos_Creados")
-    ws.append_row([nombre, tipo, fecha_final, "Abierto"])
+    # Guardar en Postgres
+    fecha_dt = None
+    if fecha_final:
+        try:
+            fecha_dt = datetime.strptime(fecha_final, "%d/%m/%Y").date()
+        except ValueError:
+            fecha_dt = None
+
+    ev = Evento(
+        nombre_evento=nombre,
+        tipo_evento=tipo or "OTRO",
+        fecha_evento=fecha_dt,
+        estado="Abierto",
+    )
+    db.session.add(ev)
+    db.session.commit()
     flash(f"Evento {nombre} creado correctamente")
     return redirect(url_for('index'))
 
@@ -219,11 +329,16 @@ def crear_evento():
 @app.route('/tomar_lista/<nombre_evento>')
 @login_required
 def tomar_lista(nombre_evento):
-    eventos = gsm.get_batch_data("Eventos_Creados")
-    evento_info = next((e for e in eventos if e['Nombre_Evento'] == nombre_evento), None)
-    
-    invitados = gsm.get_batch_data("Maestro")
-    log_data = gsm.get_batch_data("Eventos_Log")
+    ev = Evento.query.filter_by(nombre_evento=nombre_evento).first()
+    if not ev:
+        return f"Evento no encontrado: {nombre_evento}", 404
+    evento_info = _evento_to_template_dict(ev)
+
+    invitados_db = Invitado.query.order_by(Invitado.nombre.asc()).all()
+    invitados = [_invitado_to_template_dict(i) for i in invitados_db]
+
+    asistencias = Asistencia.query.filter_by(evento_id=ev.id).all()
+    asistentes_ids = [str(a.invitado_id) for a in asistencias]
     
     mes_actual = datetime.now().month
     meses_es = ['', 'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 
@@ -236,8 +351,6 @@ def tomar_lista(nombre_evento):
         if mes_cumple == mes_actual:
             inv['dia_cumple'] = dia_cumple
             cumpleañeros_del_evento.append(inv)
-
-    asistentes_ids = [str(f['ID_Invitado']) for f in log_data if f['Evento_Especifico'] == nombre_evento]
     
     return render_template('lista.html', 
                            invitados=invitados, 
@@ -255,41 +368,42 @@ def procesar_asistencia_masiva():
     accion = request.form.get('accion')
     ev_nombre = request.form.get('evento_nombre')
     ev_tipo = request.form.get('tipo_evento') or "Reunión"
-    
-    ws_log = gsm.get_ws("Eventos_Log")
-    
+
+    ev = Evento.query.filter_by(nombre_evento=ev_nombre).first()
+    if not ev:
+        return jsonify({"status": "error", "message": "Evento no encontrado"}), 404
+    if ev_tipo and (not ev.tipo_evento):
+        ev.tipo_evento = ev_tipo
+
+    ids_int = []
+    for x in ids_sel:
+        try:
+            ids_int.append(int(x))
+        except ValueError:
+            continue
+
     if accion == 'registrar':
-        maestro = gsm.get_batch_data("Maestro")
-        fecha_hoy = datetime.now().strftime('%d/%m/%Y')
-        mes_hoy = datetime.now().strftime('%B')
-        
-        nuevas_filas = []
-        for inv in maestro:
-            if str(inv['Nro']) in ids_sel:
-                # Estructura del LOG
-                nuevas_filas.append([
-                    fecha_hoy, ev_nombre, ev_tipo, 
-                    inv['Nro'], inv['CEDULA'], 
-                    inv['NOMBRE Y APELLIDO'], mes_hoy
-                ])
-        
-        if nuevas_filas:
-            ws_log.append_rows(nuevas_filas)
-    
-    elif accion == 'quitar': # <--- ESTO FALTABA EN TU CÓDIGO ORIGINAL
-        all_logs = ws_log.get_all_values()
-        headers = all_logs[0]
-        rows_to_keep = [headers]
-        
-        # Índices asumiendo orden: Fecha, Evento, Tipo, ID...
-        # Ajustar si tu Log es diferente. Aquí asumo col B=Evento(1) y D=ID(3)
-        for row in all_logs[1:]:
-            # Si NO coincide con lo que queremos borrar, lo guardamos
-            if not (len(row) > 3 and row[1] == ev_nombre and str(row[3]) in ids_sel):
-                rows_to_keep.append(row)
-        
-        ws_log.clear()
-        ws_log.update('A1', rows_to_keep)
+        hoy = datetime.now().date()
+        for inv_id in ids_int:
+            a = Asistencia(evento_id=ev.id, invitado_id=inv_id, fecha=hoy)
+            db.session.add(a)
+        try:
+            db.session.commit()
+        except Exception:
+            # por el unique constraint, si ya existe una asistencia, hacemos rollback y seguimos
+            db.session.rollback()
+            for inv_id in ids_int:
+                exists = Asistencia.query.filter_by(evento_id=ev.id, invitado_id=inv_id).first()
+                if not exists:
+                    db.session.add(Asistencia(evento_id=ev.id, invitado_id=inv_id, fecha=hoy))
+            db.session.commit()
+
+    elif accion == 'quitar':
+        Asistencia.query.filter(
+            Asistencia.evento_id == ev.id,
+            Asistencia.invitado_id.in_(ids_int),
+        ).delete(synchronize_session=False)
+        db.session.commit()
             
     return jsonify({"status": "ok"})
 
@@ -298,18 +412,34 @@ def procesar_asistencia_masiva():
 @app.route('/historial_usuario/<id_inv>')
 @login_required
 def historial_usuario(id_inv):
-    log_data = gsm.get_batch_data("Eventos_Log")
-    participaciones = [
-        {"Fecha": f['Fecha'], "Evento": f['Evento_Especifico']} 
-        for f in log_data if str(f['ID_Invitado']) == str(id_inv)
-    ]
-    return jsonify(participaciones)
+    try:
+        inv_id = int(id_inv)
+    except ValueError:
+        return jsonify([])
+
+    asistencias = (
+        db.session.query(Asistencia, Evento)
+        .join(Evento, Evento.id == Asistencia.evento_id)
+        .filter(Asistencia.invitado_id == inv_id)
+        .order_by(Asistencia.fecha.desc())
+        .all()
+    )
+    out = []
+    for a, ev in asistencias:
+        out.append(
+            {
+                "Fecha": a.fecha.strftime("%d/%m/%Y") if a.fecha else "",
+                "Evento": ev.nombre_evento,
+            }
+        )
+    return jsonify(out)
 
 @app.route('/cumpleañeros')
 @login_required
 def cumpleañeros():
     """Muestra todas las personas que tienen cumpleaños en el mes actual"""
-    personas = gsm.get_batch_data("Maestro")
+    personas_db = Invitado.query.order_by(Invitado.nombre.asc()).all()
+    personas = [_invitado_to_template_dict(p) for p in personas_db]
     mes_actual = datetime.now().month
     
     meses_es = ['', 'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 
@@ -336,40 +466,62 @@ def cumpleañeros():
 @app.route('/consultas')
 @login_required
 def consultas():
-    eventos = gsm.get_batch_data("Eventos_Creados")
-    cerrados = [e for e in eventos if e.get('Estado') == 'Cerrado']
-    personas = gsm.get_batch_data("Maestro")
+    eventos_db = (
+        Evento.query.filter_by(estado="Cerrado")
+        .order_by(Evento.id.desc())
+        .all()
+    )
+    cerrados = [_evento_to_template_dict(e) for e in eventos_db]
+    personas_db = Invitado.query.order_by(Invitado.nombre.asc()).all()
+    personas = [_invitado_to_template_dict(p) for p in personas_db]
     return render_template('consultas.html', eventos=cerrados, personas=personas)
 
 @app.route('/detalle_evento_cerrado/<nombre_evento>')
 @login_required
 @retry_on_429
 def detalle_evento_cerrado(nombre_evento):
-    log_data = gsm.get_batch_data("Eventos_Log")
-    asistentes = [f for f in log_data if f['Evento_Especifico'] == nombre_evento]
+    ev = Evento.query.filter_by(nombre_evento=nombre_evento).first()
+    if not ev:
+        return f"Evento no encontrado: {nombre_evento}", 404
+
+    asistencias = (
+        db.session.query(Asistencia, Invitado)
+        .join(Invitado, Invitado.id == Asistencia.invitado_id)
+        .filter(Asistencia.evento_id == ev.id)
+        .order_by(Asistencia.id.asc())
+        .all()
+    )
+    asistentes = []
+    for a, inv in asistencias:
+        asistentes.append(
+            {
+                "Fecha": a.fecha.strftime("%d/%m/%Y") if a.fecha else "",
+                "Evento_Especifico": ev.nombre_evento,
+                "Tipo_Evento": ev.tipo_evento,
+                "ID_Invitado": inv.id,
+                "Cedula": inv.cedula or "",
+                "Nombre_Invitado": inv.nombre or "",
+                "Mes": a.fecha.strftime("%B") if a.fecha else "",
+            }
+        )
     
     mes_actual = datetime.now().month
     meses_es = ['', 'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 
                 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
     
-    # Diccionario completo del Maestro por ID para enriquecer cada asistente
-    maestro = gsm.get_batch_data("Maestro")
-    maestro_dict = {str(p['Nro']): p for p in maestro}
-    
     cumpleañeros_asistentes = []
     for asis in asistentes:
-        id_inv = str(asis.get('ID_Invitado', ''))
-        persona = maestro_dict.get(id_inv, {})
+        persona = Invitado.query.get(int(asis.get("ID_Invitado")))
         
         # Enriquecer con datos del Maestro
-        asis['Celular']       = persona.get('CELULAR', '')
-        asis['Estado']        = persona.get('ESTADO', '')
-        asis['Talento']       = persona.get('TALENTO', '')
-        asis['Observaciones'] = persona.get('OBSERVACIONES', '')
+        asis['Celular']       = (persona.celular if persona else "") or ""
+        asis['Estado']        = (persona.estado if persona else "") or ""
+        asis['Talento']       = (persona.talento if persona else "") or ""
+        asis['Observaciones'] = (persona.observaciones if persona else "") or ""
         asis['es_cumple']     = False
 
         # Detectar cumpleañeros
-        mes, dia = procesar_fecha(persona.get('CUMPLE', ''))
+        mes, dia = procesar_fecha((persona.cumple if persona else "") or "")
         if mes == mes_actual:
             asis['es_cumple']  = True
             asis['dia_cumple'] = dia
@@ -386,25 +538,62 @@ def detalle_evento_cerrado(nombre_evento):
 @login_required
 @retry_on_429
 def historial_personal(id_inv):
-    maestro = gsm.get_batch_data("Maestro")
-    persona = next((p for p in maestro if str(p['Nro']) == str(id_inv)), None)
-    log_data = gsm.get_batch_data("Eventos_Log")
-    participaciones = [f for f in log_data if str(f['ID_Invitado']) == str(id_inv)]
-    return render_template('detalle_historial.html', persona=persona, lista=participaciones, tipo="persona")
+    try:
+        inv_id = int(id_inv)
+    except ValueError:
+        return "ID inválido", 400
+
+    persona_db = Invitado.query.get(inv_id)
+    if not persona_db:
+        return "Persona no encontrada", 404
+
+    persona = _invitado_to_template_dict(persona_db)
+    participaciones = (
+        db.session.query(Asistencia, Evento)
+        .join(Evento, Evento.id == Asistencia.evento_id)
+        .filter(Asistencia.invitado_id == inv_id)
+        .order_by(Asistencia.fecha.desc())
+        .all()
+    )
+    lista = []
+    for a, ev in participaciones:
+        lista.append(
+            {
+                "Fecha": a.fecha.strftime("%d/%m/%Y") if a.fecha else "",
+                "Evento_Especifico": ev.nombre_evento,
+                "Tipo_Evento": ev.tipo_evento,
+                "ID_Invitado": inv_id,
+                "Nombre_Invitado": persona_db.nombre,
+            }
+        )
+    return render_template('detalle_historial.html', persona=persona, lista=lista, tipo="persona")
 
 @app.route('/previa_cierre/<nombre_evento>')
 @login_required
 def previa_cierre(nombre_evento):
     """Vista previa antes de cerrar un evento: cumpleañeros y observaciones"""
-    eventos = gsm.get_batch_data("Eventos_Creados")
-    evento_info = next((e for e in eventos if e['Nombre_Evento'] == nombre_evento), None)
+    ev = Evento.query.filter_by(nombre_evento=nombre_evento).first()
+    if not ev:
+        return f"Evento no encontrado: {nombre_evento}", 404
+    evento_info = _evento_to_template_dict(ev)
 
-    log_data = gsm.get_batch_data("Eventos_Log")
-    asistentes = [f for f in log_data if f.get('Evento_Especifico') == nombre_evento]
-
-    maestro = gsm.get_batch_data("Maestro")
-    # Diccionario rápido por ID
-    maestro_dict = {str(p['Nro']): p for p in maestro}
+    asistencias = (
+        db.session.query(Asistencia, Invitado)
+        .join(Invitado, Invitado.id == Asistencia.invitado_id)
+        .filter(Asistencia.evento_id == ev.id)
+        .all()
+    )
+    asistentes = []
+    for a, inv in asistencias:
+        asistentes.append(
+            {
+                "Fecha": a.fecha.strftime("%d/%m/%Y") if a.fecha else "",
+                "Evento_Especifico": ev.nombre_evento,
+                "Tipo_Evento": ev.tipo_evento,
+                "ID_Invitado": inv.id,
+                "Nombre_Invitado": inv.nombre,
+            }
+        )
 
     mes_actual = datetime.now().month
     meses_es = ['', 'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
@@ -412,14 +601,13 @@ def previa_cierre(nombre_evento):
 
     cumpleañeros_evento = []
     for asis in asistentes:
-        id_inv = str(asis.get('ID_Invitado', ''))
-        persona = maestro_dict.get(id_inv, {})
-        mes, dia = procesar_fecha(persona.get('CUMPLE', ''))
+        persona = Invitado.query.get(int(asis.get("ID_Invitado")))
+        mes, dia = procesar_fecha((persona.cumple if persona else "") or "")
         if mes == mes_actual:
             cumpleañeros_evento.append({
                 'nombre': asis.get('Nombre_Invitado', 'N/A'),
                 'dia': dia,
-                'cumple': persona.get('CUMPLE', '')
+                'cumple': (persona.cumple if persona else "") or ""
             })
     cumpleañeros_evento.sort(key=lambda x: x['dia'])
 
@@ -437,15 +625,12 @@ def previa_cierre(nombre_evento):
 def cerrar_evento():
     nombre = request.form.get('nombre_evento')
     observaciones = request.form.get('observaciones', '')
-    ws = gsm.get_ws("Eventos_Creados")
-    try:
-        cell = ws.find(nombre)
-        ws.update_cell(cell.row, 4, "Cerrado")
+    ev = Evento.query.filter_by(nombre_evento=nombre).first()
+    if ev:
+        ev.estado = "Cerrado"
         if observaciones:
-            # Guarda observaciones en columna 5
-            ws.update_cell(cell.row, 5, observaciones)
-    except:
-        pass
+            ev.observaciones = observaciones
+        db.session.commit()
     flash(f"Evento '{nombre}' cerrado correctamente.")
     return redirect(url_for('index'))
 
@@ -453,45 +638,44 @@ def cerrar_evento():
 @login_required
 def get_persona(id_inv):
     """API para obtener datos completos de una persona para editar"""
-    maestro = gsm.get_batch_data("Maestro")
-    persona = next((p for p in maestro if str(p['Nro']) == str(id_inv)), None)
-    if not persona:
+    try:
+        inv_id = int(id_inv)
+    except ValueError:
+        return jsonify({"error": "ID inválido"}), 400
+    persona_db = Invitado.query.get(inv_id)
+    if not persona_db:
         return jsonify({"error": "No encontrado"}), 404
-    return jsonify(persona)
+    return jsonify(_invitado_to_template_dict(persona_db))
 
 @app.route('/editar_persona/<id_inv>', methods=['POST'])
 @login_required
 @retry_on_429
 def editar_persona(id_inv):
     """Edita los datos de una persona en la hoja Maestro"""
-    ws = gsm.get_ws("Maestro")
-    all_data = ws.get_all_values()
-    headers = all_data[0]
+    try:
+        inv_id = int(id_inv)
+    except ValueError:
+        return jsonify({"error": "ID inválido"}), 400
 
-    # Encontrar la fila correspondiente
-    row_idx = None
-    for i, row in enumerate(all_data[1:], start=2):
-        if str(row[0]) == str(id_inv):
-            row_idx = i
-            break
-
-    if not row_idx:
+    persona = Invitado.query.get(inv_id)
+    if not persona:
         return jsonify({"error": "Persona no encontrada"}), 404
 
-    # Mapa de campos a columnas (basado en el orden del Maestro)
-    campos = {
-        'ESTADO': 2, 'NOMBRE Y APELLIDO': 3, 'GENERO': 4,
-        'CEDULA': 5, 'CORREO': 6, 'CELULAR': 7,
-        'CUMPLE': 8, 'ZONA': 9, 'EQUIPO': 10,
-        'TALENTO': 11, 'OBSERVACIONES': 12
-    }
+    # Acepta el mismo payload que el frontend/tu JS actual
+    persona.estado = request.form.get("ESTADO", persona.estado or "")
+    nombre = request.form.get("NOMBRE Y APELLIDO", persona.nombre or "")
+    persona.nombre = (nombre or "").upper()
+    persona.genero = request.form.get("GENERO", persona.genero or "")
+    persona.cedula = request.form.get("CEDULA", persona.cedula or "")
+    persona.correo = request.form.get("CORREO", persona.correo or "")
+    persona.celular = request.form.get("CELULAR", persona.celular or "")
+    persona.cumple = request.form.get("CUMPLE", persona.cumple or "")
+    persona.zona = request.form.get("ZONA", persona.zona or "")
+    persona.equipo = request.form.get("EQUIPO", persona.equipo or "")
+    persona.talento = request.form.get("TALENTO", persona.talento or "")
+    persona.observaciones = request.form.get("OBSERVACIONES", persona.observaciones or "")
 
-    for campo, col in campos.items():
-        valor = request.form.get(campo, '')
-        if campo == 'NOMBRE Y APELLIDO':
-            valor = valor.upper()
-        ws.update_cell(row_idx, col, valor)
-
+    db.session.commit()
     return jsonify({"status": "ok", "mensaje": "Datos actualizados correctamente"})
 
 # ==========================================
@@ -517,40 +701,35 @@ def agregar_invitado():
     # Origen (para saber a dónde volver)
     origen = request.form.get('evento_actual') 
 
-    ws_maestro = gsm.get_ws("Maestro")
-    all_data = ws_maestro.get_all_values()
-    
-    # 2. Generar ID automático
-    try:
-        ultimo_id = int(all_data[-1][0]) if len(all_data) > 1 and all_data[-1][0].isdigit() else 0
-    except:
-        ultimo_id = 0
-    nuevo_id = ultimo_id + 1
-
-    # 3. GUARDAR CON EL ORDEN DE LA IMAGEN
-    # Orden: Nro | ESTADO | NOMBRE | GENERO | CEDULA | CORREO | CELULAR | CUMPLE | ZONA | EQUIPO | TALENTO | OBSERVACIONES
-    fila_nueva = [
-        nuevo_id, 
-        estado, 
-        nombre, 
-        genero, 
-        cedula, 
-        correo, 
-        celular, 
-        cumple, 
-        zona, 
-        equipo, 
-        talento, 
-        observaciones
-    ]
-
-    ws_maestro.append_row(fila_nueva)
+    nuevo = Invitado(
+        estado=estado,
+        nombre=nombre,
+        genero=genero,
+        cedula=cedula,
+        correo=correo,
+        celular=celular,
+        cumple=cumple,
+        zona=zona,
+        equipo=equipo,
+        talento=talento,
+        observaciones=observaciones,
+    )
+    db.session.add(nuevo)
+    db.session.commit()
 
     if origen:
         return redirect(url_for('tomar_lista', nombre_evento=origen))
     else:
         flash(f"Invitado {nombre} agregado exitosamente")
         return redirect(url_for('index'))
+
+
+@app.cli.command("init-db")
+def init_db_command():
+    """Inicializa las tablas en la base configurada por DATABASE_URL."""
+    with app.app_context():
+        db.create_all()
+    print("DB inicializada (create_all).")
                 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', '5000'))
