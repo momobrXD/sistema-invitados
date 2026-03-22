@@ -67,6 +67,22 @@
             top: 78px;
             z-index: 100;
         }
+        .ficha-campo {
+            background: #f8fafc;
+            border-radius: 8px;
+            padding: 10px 14px;
+        }
+        .ficha-valor {
+            font-size: 0.9rem;
+            color: #1e293b;
+        }
+        .etiqueta-sin { padding: 3px 8px; border-radius: 6px; font-size: 0.7rem; font-weight: 600; margin: 2px 4px 2px 0; display: inline-block; border: 1px solid; }
+        .etiqueta-cedula { background: #fef2f2; color: #dc2626; border-color: #dc2626; }
+        .etiqueta-cumple { background: #fff7ed; color: #ea580c; border-color: #ea580c; }
+        .etiqueta-celular { background: #fefce8; color: #ca8a04; border-color: #ca8a04; }
+        .etiqueta-correo { background: #f0fdf4; color: #16a34a; border-color: #16a34a; }
+        .etiqueta-zona { background: #eff6ff; color: #2563eb; border-color: #2563eb; }
+        .etiqueta-completo { background: #dcfce7; color: #15803d; border-color: #15803d; }
     </style>
 </head>
 <body class="bg-page">
@@ -102,7 +118,7 @@
         <!-- Buscador -->
         <div class="mb-3">
             <div class="search-wrap">
-                <input type="text" id="inputBusqueda" class="search-bar" placeholder="Buscar por nombre o cédula...">
+                <input type="text" id="inputBusqueda" class="search-bar" placeholder="Buscar por nombre...">
             </div>
         </div>
 
@@ -132,8 +148,7 @@
                     <tr>
                         <th class="px-4" style="width:50px;"></th>
                         <th>Nombre</th>
-                        <th>Cédula</th>
-                        <th>Zona</th>
+                        <th>Datos faltantes</th>
                         <th class="text-center">Estado</th>
                         <th class="text-center">Ficha</th>
                     </tr>
@@ -151,8 +166,19 @@
                             </div>
                             <small class="text-muted" style="font-size:0.73rem;">{{ inv['ESTADO'] }}</small>
                         </td>
-                        <td style="color:#64748b; font-size:0.88rem;">{{ inv['CEDULA'] }}</td>
-                        <td style="color:#64748b; font-size:0.82rem;">{{ inv['ZONA'] }}</td>
+                        <td class="etiquetas-col" style="max-width:260px;">
+                            {% set v_ced = (inv.get('CEDULA') or '')|replace(' ','')|replace('\t','') %}
+                            {% set v_cum = (inv.get('CUMPLE') or '')|replace(' ','')|replace('\t','') %}
+                            {% set v_cel = (inv.get('CELULAR') or '')|replace(' ','')|replace('\t','') %}
+                            {% set v_cor = (inv.get('CORREO') or '')|replace(' ','')|replace('\t','') %}
+                            {% set v_zon = (inv.get('ZONA') or '')|replace(' ','')|replace('\t','') %}
+                            {% if not v_ced %}<span class="etiqueta-sin etiqueta-cedula">Sin cédula</span>{% endif %}
+                            {% if not v_cum %}<span class="etiqueta-sin etiqueta-cumple">Sin cumpleaños</span>{% endif %}
+                            {% if not v_cel %}<span class="etiqueta-sin etiqueta-celular">Sin celular</span>{% endif %}
+                            {% if not v_cor %}<span class="etiqueta-sin etiqueta-correo">Sin correo</span>{% endif %}
+                            {% if not v_zon %}<span class="etiqueta-sin etiqueta-zona">Sin zona</span>{% endif %}
+                            {% if v_ced and v_cum and v_cel and v_cor and v_zon %}<span class="etiqueta-sin etiqueta-completo">✓ Completo</span>{% endif %}
+                        </td>
                         <td class="text-center">
                             {% if id_str in asistentes_ids %}
                                 <span class="estado-registrado">✓ Presente</span>
@@ -161,8 +187,7 @@
                             {% endif %}
                         </td>
                         <td class="text-center">
-                            <button type="button" class="btn-info-circle" data-tooltip="Ver ficha"
-                                onclick='verFicha({{ id_str|tojson }}, {{ (inv.get("NOMBRE Y APELLIDO") or "")|tojson }}, {{ (inv.get("ESTADO") or "")|tojson }}, {{ (inv.get("ZONA") or "")|tojson }}, {{ (inv.get("TALENTO") or "")|tojson }})'>
+                            <button type="button" class="btn-info-circle btn-ver-ficha" data-tooltip="Ver ficha" data-id="{{ inv['Nro'] }}">
                                 ℹ️
                             </button>
                         </td>
@@ -174,9 +199,11 @@
         </div>
     </main>
 
+    <div id="pageData" data-evento="{{ (evento.Nombre_Evento or '')|e }}" data-tipo="{{ (evento.Tipo or '')|e }}" style="display:none"></div>
+
     <!-- Modal Ficha -->
-    <div class="modal fade" id="modalFicha" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
+    <div class="modal fade" id="modalFicha" tabindex="-1" style="z-index: 1060;">
+        <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
             <div class="modal-content glass-card p-0">
                 <div class="modal-header border-0 px-4 pt-4">
                     <h5 class="welcome-text" id="f_nombre" style="font-size:1.2rem;"></h5>
@@ -184,27 +211,69 @@
                 </div>
                 <div class="modal-body px-4 pb-4">
                     <div class="row g-3 mb-3">
-                        <div class="col-6">
-                            <div style="background:#f8fafc; border-radius:8px; padding:10px 14px;">
+                        <div class="col-6 col-md-4">
+                            <div class="ficha-campo">
                                 <div class="form-label-custom m-0">Estado</div>
-                                <div id="f_estado" class="fw-bold" style="font-size:0.9rem;"></div>
+                                <div id="f_estado" class="fw-bold ficha-valor"></div>
                             </div>
                         </div>
-                        <div class="col-6">
-                            <div style="background:#f8fafc; border-radius:8px; padding:10px 14px;">
+                        <div class="col-6 col-md-4">
+                            <div class="ficha-campo">
+                                <div class="form-label-custom m-0">Género</div>
+                                <div id="f_genero" class="fw-bold ficha-valor"></div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-4">
+                            <div class="ficha-campo">
+                                <div class="form-label-custom m-0">Cédula</div>
+                                <div id="f_cedula" class="fw-bold ficha-valor"></div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-4">
+                            <div class="ficha-campo">
+                                <div class="form-label-custom m-0">Correo</div>
+                                <div id="f_correo" class="fw-bold ficha-valor"></div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-4">
+                            <div class="ficha-campo">
+                                <div class="form-label-custom m-0">Celular</div>
+                                <div id="f_celular" class="fw-bold ficha-valor"></div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-4">
+                            <div class="ficha-campo">
+                                <div class="form-label-custom m-0">Cumpleaños</div>
+                                <div id="f_cumple" class="fw-bold ficha-valor"></div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-4">
+                            <div class="ficha-campo">
                                 <div class="form-label-custom m-0">Zona</div>
-                                <div id="f_zona" class="fw-bold" style="font-size:0.9rem;"></div>
+                                <div id="f_zona" class="fw-bold ficha-valor"></div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-4">
+                            <div class="ficha-campo">
+                                <div class="form-label-custom m-0">Equipo Rector</div>
+                                <div id="f_equipo" class="fw-bold ficha-valor"></div>
                             </div>
                         </div>
                         <div class="col-12">
-                            <div style="background:#f8fafc; border-radius:8px; padding:10px 14px;">
+                            <div class="ficha-campo">
                                 <div class="form-label-custom m-0">Talento / Servicio</div>
-                                <div id="f_talento" class="fw-bold" style="font-size:0.9rem;"></div>
+                                <div id="f_talento" class="fw-bold ficha-valor"></div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="ficha-campo">
+                                <div class="form-label-custom m-0">Observaciones</div>
+                                <div id="f_observaciones" class="fw-bold ficha-valor"></div>
                             </div>
                         </div>
                     </div>
                     <hr class="opacity-10 my-2">
-                    <h6 class="form-label-custom mb-2">Historial reciente:</h6>
+                    <h6 class="form-label-custom mb-2">Historial reciente</h6>
                     <div id="historialLista" class="scroll-area" style="max-height:180px;"></div>
                 </div>
             </div>
@@ -251,35 +320,74 @@
             const params = new URLSearchParams();
             ids.forEach(id => params.append('invitados_ids', id));
             params.append('accion', tipo);
-            params.append('evento_nombre', {{ (evento.Nombre_Evento or "")|tojson }});
-            params.append('tipo_evento', {{ (evento.Tipo or "")|tojson }});
+            params.append('evento_nombre', document.getElementById('pageData').dataset.evento || '');
+            params.append('tipo_evento', document.getElementById('pageData').dataset.tipo || '');
 
             fetch('/procesar_asistencia_masiva', { method: 'POST', body: params })
             .then(() => location.reload());
         }
 
-        function verFicha(id, nombre, estado, zona, talento) {
-            document.getElementById('f_nombre').innerText = nombre;
-            document.getElementById('f_estado').innerText = estado || '—';
-            document.getElementById('f_zona').innerText = zona || '—';
-            document.getElementById('f_talento').innerText = talento || '—';
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.btn-ver-ficha').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    var id = this.getAttribute('data-id');
+                    if (id) verFicha(id);
+                });
+            });
+        });
 
-            const h = document.getElementById('historialLista');
-            h.innerHTML = '<p style="color:#94a3b8; font-size:0.82rem; padding:10px;">Cargando historial...</p>';
-            new bootstrap.Modal(document.getElementById('modalFicha')).show();
+        function verFicha(id) {
+            var map = {
+                'NOMBRE Y APELLIDO':'f_nombre', 'ESTADO':'f_estado', 'GENERO':'f_genero', 'CEDULA':'f_cedula',
+                'CORREO':'f_correo', 'CELULAR':'f_celular', 'CUMPLE':'f_cumple', 'ZONA':'f_zona',
+                'EQUIPO':'f_equipo', 'TALENTO':'f_talento', 'OBSERVACIONES':'f_observaciones'
+            };
+            ['estado','genero','cedula','correo','celular','cumple','zona','equipo','talento','observaciones'].forEach(function(c) {
+                var el = document.getElementById('f_' + c);
+                if (el) el.textContent = '—';
+            });
+            document.getElementById('f_nombre').textContent = 'Cargando...';
+            var h = document.getElementById('historialLista');
+            h.innerHTML = '<p style="color:#94a3b8; font-size:0.82rem; padding:10px;">Cargando...</p>';
 
-            fetch(`/historial_usuario/${id}`)
-            .then(r => r.json())
-            .then(data => {
-                h.innerHTML = data.length
-                    ? data.slice(0,10).map(d => `
-                        <div style="padding:8px 12px; margin-bottom:6px; background:#f8fafc; border-radius:8px; border-left:3px solid #2e6faf; font-size:0.83rem;">
-                            <div style="font-weight:600; color:#1e293b;">${d.Evento}</div>
-                            <div style="color:#64748b;">${d.Fecha}</div>
-                        </div>`).join('')
-                    : '<p style="color:#94a3b8; font-style:italic; font-size:0.85rem; padding:10px;">Sin registros previos.</p>';
-            })
-            .catch(() => h.innerHTML = '<p style="color:#ef4444; font-size:0.82rem; padding:10px;">Error al cargar historial.</p>');
+            var modalEl = document.getElementById('modalFicha');
+            if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+                var modal = bootstrap.Modal.getOrCreateInstance(modalEl) || new bootstrap.Modal(modalEl);
+                modal.show();
+            } else {
+                modalEl.classList.add('show');
+                modalEl.style.display = 'block';
+                modalEl.setAttribute('aria-hidden', 'false');
+            }
+
+            Promise.all([
+                fetch('/get_persona/' + id, { credentials: 'same-origin' }).then(function(r) { return r.ok ? r.json() : {}; }),
+                fetch('/historial_usuario/' + id, { credentials: 'same-origin' }).then(function(r) { return r.json(); })
+            ]).then(function(res) {
+                var p = res[0], hist = res[1];
+                if (p && p['NOMBRE Y APELLIDO']) {
+                    document.getElementById('f_nombre').textContent = p['NOMBRE Y APELLIDO'];
+                    for (var k in map) {
+                        if (k === 'NOMBRE Y APELLIDO') continue;
+                        var v = p[k], el = document.getElementById(map[k]);
+                        if (el) el.textContent = (v && String(v).trim()) ? v : '—';
+                    }
+                } else {
+                    document.getElementById('f_nombre').textContent = 'Persona no encontrada';
+                }
+                if (hist && hist.length) {
+                    h.innerHTML = hist.slice(0, 10).map(function(d) {
+                        var ev = (d.Evento || '').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+                        var fe = (d.Fecha || '').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+                        return '<div style="padding:8px 12px; margin-bottom:6px; background:#f8fafc; border-radius:8px; border-left:3px solid #2e6faf; font-size:0.83rem;"><div style="font-weight:600; color:#1e293b;">' + ev + '</div><div style="color:#64748b;">' + fe + '</div></div>';
+                    }).join('');
+                } else {
+                    h.innerHTML = '<p style="color:#94a3b8; font-style:italic; font-size:0.85rem; padding:10px;">Sin registros previos.</p>';
+                }
+            }).catch(function() {
+                document.getElementById('f_nombre').textContent = 'Error al cargar';
+                h.innerHTML = '<p style="color:#ef4444; font-size:0.82rem; padding:10px;">Error al cargar.</p>';
+            });
         }
     </script>
 </body>
