@@ -1,0 +1,36 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Animaciones ── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0.5; transform: scale(0.8); }
+}
+
+.animate-fade-up { animation: fadeUp 0.35s ease both; }
+.animate-pulse-dot { animation: pulse-dot 1.5s infinite; }
+
+/* ── Scrollbar personalizada ── */
+.scroll-area::-webkit-scrollbar { width: 5px; }
+.scroll-area::-webkit-scrollbar-track { background: #f4f6f9; border-radius: 4px; }
+.scroll-area::-webkit-scrollbar-thumb { background: #d0d7e3; border-radius: 4px; }
+.scroll-area::-webkit-scrollbar-thumb:hover { background: #9aaabe; }
+
+/* ── Fondo con textura sutil ── */
+.bg-page {
+  background:
+    radial-gradient(ellipse at 80% 0%, rgba(201,151,58,.07) 0%, transparent 60%),
+    radial-gradient(ellipse at 0% 100%, rgba(26,58,92,.06) 0%, transparent 50%),
+    #faf8f5;
+}
+
+/* ── Print ── */
+@media print {
+  nav, .no-print { display: none !important; }
+  body { background: white; }
+}

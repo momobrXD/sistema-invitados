@@ -4,6 +4,7 @@ from google.oauth2.service_account import Credentials
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
+from flask_caching import Cache
 from datetime import datetime
 from datetime import date as date_type
 import time
@@ -13,6 +14,14 @@ from functools import wraps
 
 app = Flask(__name__)
 app.secret_key = 'mcc_sistema_2026_pro_secure'
+
+# ==========================================
+# CONFIGURACIÓN DE CACHE
+# ==========================================
+cache = Cache(app, config={
+    'CACHE_TYPE': 'SimpleCache',
+    'CACHE_DEFAULT_TIMEOUT': 120,  # 2 minutos por defecto
+})
 
 # ==========================================
 # CONFIGURACIÓN DE BASE DE DATOS (POSTGRES)
@@ -404,13 +413,18 @@ def procesar_asistencia_masiva():
             Asistencia.invitado_id.in_(ids_int),
         ).delete(synchronize_session=False)
         db.session.commit()
-            
+
+    # Invalidar caches que dependen de asistencia
+    cache.delete('reportes')
+    cache.delete('consultas')
+
     return jsonify({"status": "ok"})
 
 # --- RUTAS DE HISTORIAL QUE YA TENÍAS ---
 
 @app.route('/historial_usuario/<id_inv>')
 @login_required
+@cache.cached(timeout=180)  # 3 min
 def historial_usuario(id_inv):
     try:
         inv_id = int(id_inv)
@@ -436,6 +450,7 @@ def historial_usuario(id_inv):
 
 @app.route('/cumpleañeros')
 @login_required
+@cache.cached(timeout=1800, key_prefix='cumpleaneros')  # 30 min — cambia 1 vez al mes
 def cumpleañeros():
     """Muestra todas las personas que tienen cumpleaños en el mes actual"""
     personas_db = Invitado.query.order_by(Invitado.nombre.asc()).all()
@@ -465,6 +480,7 @@ def cumpleañeros():
 
 @app.route('/consultas')
 @login_required
+@cache.cached(timeout=300, key_prefix='consultas')  # 5 min — solo cambia al cerrar evento
 def consultas():
     eventos_db = (
         Evento.query.filter_by(estado="Cerrado")
@@ -476,9 +492,36 @@ def consultas():
     personas = [_invitado_to_template_dict(p) for p in personas_db]
     return render_template('consultas.html', eventos=cerrados, personas=personas)
 
+
+@app.route('/reportes')
+@login_required
+@cache.cached(timeout=300, key_prefix='reportes')  # 5 min
+def reportes():
+    """Reporte global de todas las asistencias."""
+    rows = (
+        db.session.query(Asistencia, Evento, Invitado)
+        .join(Evento, Evento.id == Asistencia.evento_id)
+        .join(Invitado, Invitado.id == Asistencia.invitado_id)
+        .order_by(Asistencia.fecha.desc(), Asistencia.id.desc())
+        .all()
+    )
+    asistencias = []
+    for a, ev, inv in rows:
+        asistencias.append({
+            "Fecha": a.fecha.strftime("%d/%m/%Y") if a.fecha else "",
+            "Evento_Especifico": ev.nombre_evento,
+            "Tipo_Evento": ev.tipo_evento or "—",
+            "Cedula_Invitado": inv.cedula or "",
+            "Nombre_Invitado": inv.nombre or "",
+            "Mes": a.fecha.strftime("%B") if a.fecha else "",
+        })
+    return render_template("reportes.html", asistencias=asistencias)
+
+
 @app.route('/detalle_evento_cerrado/<nombre_evento>')
 @login_required
 @retry_on_429
+@cache.cached(timeout=3600)  # 1 hora — evento cerrado no cambia
 def detalle_evento_cerrado(nombre_evento):
     ev = Evento.query.filter_by(nombre_evento=nombre_evento).first()
     if not ev:
@@ -537,6 +580,7 @@ def detalle_evento_cerrado(nombre_evento):
 @app.route('/historial_personal/<id_inv>')
 @login_required
 @retry_on_429
+@cache.cached(timeout=180)  # 3 min
 def historial_personal(id_inv):
     try:
         inv_id = int(id_inv)
@@ -631,6 +675,9 @@ def cerrar_evento():
         if observaciones:
             ev.observaciones = observaciones
         db.session.commit()
+    # Invalidar caches afectados por cierre de evento
+    cache.delete('consultas')
+    cache.delete('reportes')
     flash(f"Evento '{nombre}' cerrado correctamente.")
     return redirect(url_for('index'))
 
