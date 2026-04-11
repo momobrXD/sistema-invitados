@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import api from '../api/client'
+import { filterBySearch } from '../api/search'
 
 export default function Consultas() {
   const [eventos, setEventos] = useState([])
@@ -19,9 +20,7 @@ export default function Consultas() {
   }, [])
 
   const filtradas = busqueda.length >= 2
-    ? personas.filter(p =>
-        (p.nombre + ' ' + p.cedula).toLowerCase().includes(busqueda.toLowerCase())
-      )
+    ? filterBySearch(busqueda, personas, ['nombre', 'cedula', 'zona', 'equipo'])
     : []
 
   return (

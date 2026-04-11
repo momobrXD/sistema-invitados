@@ -11,6 +11,9 @@ credenciales-google.json
 .vscode/
 .idea/
 
+# Node
+node_modules/
+
 # Archivos temporales de sistema
 .DS_Store
 Thumbs.db

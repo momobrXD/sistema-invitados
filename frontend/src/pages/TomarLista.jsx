@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import api from '../api/client'
+import { filterBySearch } from '../api/search'
 
 const TAG_STYLES = {
   cedula:  'bg-red-50 text-red-600 border-red-600',
@@ -30,9 +31,7 @@ export default function TomarLista() {
 
   const filtered = useMemo(() => {
     if (!data) return []
-    if (!search.trim()) return data.invitados
-    const q = search.toLowerCase()
-    return data.invitados.filter(i => i.nombre.toLowerCase().includes(q))
+    return filterBySearch(search, data.invitados, ['nombre', 'cedula', 'estado', 'zona'])
   }, [data, search])
 
   function toggleAll(checked) {

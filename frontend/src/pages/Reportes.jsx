@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import Navbar from '../components/Navbar'
 import api from '../api/client'
+import { filterBySearch } from '../api/search'
 
 export default function Reportes() {
   const [data, setData] = useState([])
@@ -14,11 +15,9 @@ export default function Reportes() {
   const meses = useMemo(() => [...new Set(data.map(a => a.mes).filter(Boolean))], [data])
 
   const filtered = useMemo(() => {
-    return data.filter(a => {
-      const matchText = !texto || (a.nombre + a.evento + a.cedula).toLowerCase().includes(texto.toLowerCase())
-      const matchMes = !mes || a.mes.toLowerCase() === mes.toLowerCase()
-      return matchText && matchMes
-    })
+    const bySearch = filterBySearch(texto, data, ['nombre', 'evento', 'cedula', 'tipo_evento'])
+    if (!mes) return bySearch
+    return bySearch.filter(a => a.mes.toLowerCase() === mes.toLowerCase())
   }, [data, texto, mes])
 
   return (
